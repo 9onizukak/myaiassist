@@ -105,12 +105,13 @@ Please try again in a few moments. If the issue persists, please check back late
 
 # ===== API FUNCTIONS =====
 
-def call_gemini(user_message, max_retries=2):
+def call_gemini(user_message, history=None, max_retries=2):
     """
     Call Google Gemini API using the genai SDK
 
     Args:
         user_message: User's question
+        history: List of previous conversation messages (last 5 conversations)
         max_retries: Number of retry attempts
 
     Returns:
@@ -124,8 +125,17 @@ def call_gemini(user_message, max_retries=2):
         try:
             logger.info(f"Calling Gemini API (attempt {attempt + 1}/{max_retries})...")
 
-            # Build the prompt with system instruction
-            full_prompt = f"{GEMINI_SYSTEM_PROMPT}\n\nUser Question: {user_message}"
+            # Build conversation context from history
+            history_context = ""
+            if history and len(history) > 0:
+                history_context = "\n\nPrevious conversation:\n"
+                for msg in history:
+                    role = "User" if msg.get("role") == "user" else "Assistant"
+                    history_context += f"{role}: {msg.get('content', '')}\n"
+                history_context += "\n"
+
+            # Build the prompt with system instruction and history
+            full_prompt = f"{GEMINI_SYSTEM_PROMPT}{history_context}\n\nUser Question: {user_message}"
 
             # Call Gemini using the SDK
             response = gemini_client.models.generate_content(
@@ -134,6 +144,15 @@ def call_gemini(user_message, max_retries=2):
             )
 
             answer = response.text
+
+            # Handle empty/None response
+            if not answer:
+                logger.warning("Gemini returned empty response")
+                if attempt < max_retries - 1:
+                    time.sleep(5)
+                    continue
+                return None
+
             logger.info(f"Gemini Response: {len(answer)} characters")
 
             return {
@@ -158,12 +177,13 @@ def call_gemini(user_message, max_retries=2):
     return None
 
 
-def call_groq(user_message, max_retries=2):
+def call_groq(user_message, history=None, max_retries=2):
     """
     Call GROQ API as backup for Gemini
 
     Args:
         user_message: User's question
+        history: List of previous conversation messages (last 5 conversations)
         max_retries: Number of retry attempts
 
     Returns:
@@ -177,18 +197,31 @@ def call_groq(user_message, max_retries=2):
         try:
             logger.info(f"Calling GROQ API (attempt {attempt + 1}/{max_retries})...")
 
+            # Build messages array with history
+            messages = [
+                {
+                    "role": "system",
+                    "content": GEMINI_SYSTEM_PROMPT
+                }
+            ]
+
+            # Add conversation history
+            if history and len(history) > 0:
+                for msg in history:
+                    messages.append({
+                        "role": msg.get("role", "user"),
+                        "content": msg.get("content", "")
+                    })
+
+            # Add current user message
+            messages.append({
+                "role": "user",
+                "content": user_message
+            })
+
             payload = {
                 "model": "llama-3.3-70b-versatile",
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": GEMINI_SYSTEM_PROMPT
-                    },
-                    {
-                        "role": "user",
-                        "content": user_message
-                    }
-                ],
+                "messages": messages,
                 "temperature": 0.7,
                 "max_tokens": 2048
             }
@@ -351,6 +384,7 @@ def chat():
     try:
         data = request.json
         user_message = data.get('message', '').strip()
+        history = data.get('history', [])  # Get conversation history (last 5 conversations)
 
         if not user_message:
             return jsonify({
@@ -360,16 +394,17 @@ def chat():
 
         logger.info(f"\n{'='*60}")
         logger.info(f"New Message: {user_message}")
+        logger.info(f"History: {len(history)} messages")
         logger.info(f"{'='*60}")
 
         # Step 1: Call Google Gemini API for search/information gathering
-        gemini_response = call_gemini(user_message)
+        gemini_response = call_gemini(user_message, history=history)
 
         # Use GROQ as backup if Gemini fails
         used_groq_backup = False
         if gemini_response is None:
             logger.warning("Gemini failed, trying GROQ backup...")
-            gemini_response = call_groq(user_message)
+            gemini_response = call_groq(user_message, history=history)
             used_groq_backup = True
 
         # Use fallback if both Gemini and GROQ fail
@@ -407,13 +442,30 @@ def chat():
 
 @app.route('/health')
 def health():
-    """Health check endpoint"""
+    """Health check endpoint with detailed API status"""
     return jsonify({
         'status': 'healthy',
         'service': 'MyAI Assist',
         'gemini_configured': bool(gemini_client),
         'typhoon_configured': bool(TYPHOON_API_KEY),
-        'groq_configured': bool(GROQ_API_KEY)
+        'groq_configured': bool(GROQ_API_KEY),
+        'apis': {
+            'gemini': {
+                'configured': bool(gemini_client),
+                'name': 'Gemini',
+                'status': 'online' if gemini_client else 'offline'
+            },
+            'typhoon': {
+                'configured': bool(TYPHOON_API_KEY),
+                'name': 'Typhoon',
+                'status': 'online' if TYPHOON_API_KEY else 'offline'
+            },
+            'groq': {
+                'configured': bool(GROQ_API_KEY),
+                'name': 'GROQ',
+                'status': 'online' if GROQ_API_KEY else 'offline'
+            }
+        }
     })
 
 
