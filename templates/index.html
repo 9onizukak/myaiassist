@@ -334,6 +334,98 @@
             }
         }
 
+        /* Code block styling */
+        .code-block-wrapper {
+            position: relative;
+            margin: 16px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #0d0d0f;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .code-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .code-language {
+            font-size: 12px;
+            font-weight: 500;
+            color: #a78bfa;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #a1a1aa;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.3);
+            color: #a78bfa;
+        }
+
+        .copy-btn.copied {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+
+        .code-block-content {
+            padding: 16px;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #e4e4e7;
+            tab-size: 4;
+        }
+
+        .code-block-content code {
+            background: transparent;
+            padding: 0;
+            border: none;
+            font-size: inherit;
+        }
+
+        /* Syntax highlighting colors */
+        .code-block-content .keyword { color: #c678dd; }
+        .code-block-content .string { color: #98c379; }
+        .code-block-content .number { color: #d19a66; }
+        .code-block-content .comment { color: #5c6370; font-style: italic; }
+        .code-block-content .function { color: #61afef; }
+        .code-block-content .class-name { color: #e5c07b; }
+        .code-block-content .operator { color: #56b6c2; }
+        .code-block-content .punctuation { color: #abb2bf; }
+
+        /* Inline code */
+        .inline-code {
+            background: rgba(139, 92, 246, 0.15);
+            color: #c4b5fd;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9em;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
         /* Input area */
         .input-wrapper {
             position: relative;
@@ -822,12 +914,116 @@
             return div.innerHTML;
         }
 
+        // Simple syntax highlighting
+        function highlightCode(code, language) {
+            let highlighted = escapeHtml(code);
+
+            // Keywords for common languages
+            const keywords = {
+                'python': /\b(def|class|import|from|return|if|elif|else|for|while|try|except|finally|with|as|lambda|yield|raise|pass|break|continue|and|or|not|in|is|None|True|False|async|await)\b/g,
+                'javascript': /\b(function|const|let|var|return|if|else|for|while|try|catch|finally|class|import|export|from|default|async|await|new|this|super|extends|static|get|set|typeof|instanceof|null|undefined|true|false)\b/g,
+                'typescript': /\b(function|const|let|var|return|if|else|for|while|try|catch|finally|class|import|export|from|default|async|await|new|this|super|extends|static|get|set|typeof|instanceof|null|undefined|true|false|interface|type|enum|implements|private|public|protected|readonly)\b/g,
+                'java': /\b(public|private|protected|class|interface|extends|implements|return|if|else|for|while|try|catch|finally|new|this|super|static|final|void|int|long|double|float|boolean|char|String|null|true|false|import|package)\b/g,
+                'html': /(&lt;\/?)([\w-]+)/g,
+                'css': /\b(color|background|margin|padding|border|font|display|position|width|height|top|left|right|bottom|flex|grid)\b/g,
+                'sql': /\b(SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|TABLE|INDEX|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AND|OR|NOT|NULL|AS|ORDER|BY|GROUP|HAVING|LIMIT|OFFSET)\b/gi,
+                'bash': /\b(echo|cd|ls|mkdir|rm|cp|mv|cat|grep|awk|sed|chmod|chown|sudo|apt|yum|npm|pip|git|docker)\b/g,
+                'go': /\b(func|package|import|return|if|else|for|range|switch|case|default|var|const|type|struct|interface|map|chan|go|defer|select|nil|true|false)\b/g,
+                'rust': /\b(fn|let|mut|const|if|else|for|while|loop|match|return|pub|mod|use|struct|enum|impl|trait|where|self|Self|true|false|None|Some|Ok|Err)\b/g
+            };
+
+            const lang = language?.toLowerCase() || '';
+
+            // Apply keyword highlighting
+            if (keywords[lang]) {
+                highlighted = highlighted.replace(keywords[lang], '<span class="keyword">$&</span>');
+            }
+
+            // Strings (double and single quotes)
+            highlighted = highlighted.replace(/(&quot;[^&]*&quot;|&#39;[^&]*&#39;)/g, '<span class="string">$&</span>');
+
+            // Comments (// and #)
+            highlighted = highlighted.replace(/(\/\/.*|#.*)/g, '<span class="comment">$&</span>');
+
+            // Numbers
+            highlighted = highlighted.replace(/\b(\d+\.?\d*)\b/g, '<span class="number">$1</span>');
+
+            // Function calls
+            highlighted = highlighted.replace(/\b([a-zA-Z_]\w*)\s*\(/g, '<span class="function">$1</span>(');
+
+            return highlighted;
+        }
+
+        // Copy code to clipboard
+        function copyCode(btn, codeId) {
+            const codeElement = document.getElementById(codeId);
+            if (!codeElement) return;
+
+            const code = codeElement.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.classList.add('copied');
+                btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Copied!</span>';
+
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg><span>Copy</span>';
+                }, 2000);
+            });
+        }
+
+        let codeBlockCounter = 0;
+
         function formatMessage(text) {
-            let formatted = escapeHtml(text);
+            // First, extract and process code blocks
+            const codeBlocks = [];
+            let processedText = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (match, lang, code) => {
+                const blockId = `code-block-${codeBlockCounter++}`;
+                const language = lang || 'code';
+                const trimmedCode = code.trim();
+
+                codeBlocks.push({
+                    id: blockId,
+                    language: language,
+                    code: trimmedCode,
+                    highlighted: highlightCode(trimmedCode, language)
+                });
+
+                return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
+            });
+
+            // Escape HTML for regular text
+            let formatted = escapeHtml(processedText);
+
+            // Apply markdown formatting
             formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
             formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-            formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // Inline code (backticks) - use special class
+            formatted = formatted.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+
+            // Line breaks
             formatted = formatted.replace(/\n/g, '<br>');
+
+            // Replace code block placeholders with actual HTML
+            codeBlocks.forEach((block, index) => {
+                const codeBlockHtml = `
+                    <div class="code-block-wrapper">
+                        <div class="code-block-header">
+                            <span class="code-language">${escapeHtml(block.language)}</span>
+                            <button class="copy-btn" onclick="copyCode(this, '${block.id}')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Copy</span>
+                            </button>
+                        </div>
+                        <div class="code-block-content">
+                            <code id="${block.id}">${block.highlighted}</code>
+                        </div>
+                    </div>`;
+                formatted = formatted.replace(`__CODE_BLOCK_${index}__`, codeBlockHtml);
+            });
+
             return formatted;
         }
 
