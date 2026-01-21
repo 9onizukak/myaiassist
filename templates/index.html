@@ -426,6 +426,145 @@
             border: 1px solid rgba(139, 92, 246, 0.2);
         }
 
+        /* Thinking Container - Chain of Thought */
+        .thinking-container {
+            background: rgba(45, 45, 52, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            margin: 16px 0;
+            max-width: 85%;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .thinking-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(99, 102, 241, 0.1) 100%);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .thinking-header:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.15) 100%);
+        }
+
+        .thinking-icon {
+            color: #a78bfa;
+            display: flex;
+            align-items: center;
+        }
+
+        .thinking-icon svg.animate-pulse {
+            animation: thinking-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes thinking-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .thinking-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #a78bfa;
+            letter-spacing: 0.02em;
+            flex-grow: 1;
+        }
+
+        .thinking-toggle {
+            background: none;
+            border: none;
+            color: #a78bfa;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .thinking-toggle:hover {
+            background: rgba(139, 92, 246, 0.2);
+        }
+
+        .chevron-icon {
+            transition: transform 0.2s ease;
+        }
+
+        .thinking-content {
+            padding: 16px 18px;
+            max-height: 300px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+        }
+
+        .thinking-content.collapsed {
+            max-height: 0;
+            padding: 0 18px;
+            overflow: hidden;
+            opacity: 0;
+        }
+
+        .thinking-text {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #a1a1aa;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .thinking-complete {
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+
+        .thinking-complete .thinking-icon {
+            color: #22c55e;
+        }
+
+        .thinking-complete .thinking-label {
+            color: #22c55e;
+        }
+
+        /* Streaming Indicator */
+        .streaming-indicator {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            gap: 4px;
+        }
+
+        .streaming-dot {
+            width: 8px;
+            height: 8px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            animation: streaming-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes streaming-pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        .streaming-text {
+            font-size: 11px;
+            color: #a78bfa;
+            font-weight: 500;
+        }
+
         /* Input area */
         .input-wrapper {
             position: relative;
@@ -682,6 +821,376 @@
                 opacity: 0.2;
             }
         }
+
+        /* Investor Insights Panel - Minimal Icon Design */
+        .investor-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 24px;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Collapsed State - Icon Only */
+        .investor-panel.collapsed {
+            width: 56px;
+            height: 56px;
+        }
+
+        .investor-panel.collapsed .investor-expanded {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.95);
+        }
+
+        /* Expanded State */
+        .investor-panel.expanded {
+            width: 420px;
+            max-width: calc(100vw - 48px);
+        }
+
+        .investor-panel.expanded .investor-icon-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+        }
+
+        .investor-panel.expanded .investor-icon-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .investor-panel.expanded .investor-icon-btn .icon-chart {
+            display: none;
+        }
+
+        .investor-panel.expanded .investor-icon-btn .icon-close {
+            display: block;
+        }
+
+        /* Icon Button */
+        .investor-icon-btn {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #eab308 0%, #f59e0b 100%);
+            border: none;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(234, 179, 8, 0.4), 0 0 0 0 rgba(234, 179, 8, 0.4);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .investor-icon-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #fbbf24 0%, #eab308 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .investor-icon-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 32px rgba(234, 179, 8, 0.5), 0 0 0 4px rgba(234, 179, 8, 0.2);
+        }
+
+        .investor-icon-btn:hover::before {
+            opacity: 1;
+        }
+
+        .investor-icon-btn:active {
+            transform: scale(0.95);
+        }
+
+        .investor-icon-btn svg {
+            width: 24px;
+            height: 24px;
+            color: #18181b;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .investor-icon-btn .icon-close {
+            display: none;
+        }
+
+        .investor-icon-btn:hover svg {
+            transform: scale(1.1);
+        }
+
+        /* Pulse animation for attention */
+        .investor-panel.collapsed .investor-icon-btn {
+            animation: icon-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes icon-pulse {
+            0%, 100% {
+                box-shadow: 0 4px 20px rgba(234, 179, 8, 0.4), 0 0 0 0 rgba(234, 179, 8, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(234, 179, 8, 0.4), 0 0 0 8px rgba(234, 179, 8, 0);
+            }
+        }
+
+        /* Tooltip on hover */
+        .investor-tooltip {
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-right: 12px;
+            padding: 8px 14px;
+            background: rgba(24, 24, 27, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #fbbf24;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+
+        .investor-tooltip::after {
+            content: '';
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-left-color: rgba(234, 179, 8, 0.3);
+        }
+
+        .investor-panel.collapsed:hover .investor-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Expanded Content */
+        .investor-expanded {
+            background: rgba(24, 24, 27, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(234, 179, 8, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(234, 179, 8, 0.1);
+        }
+
+        .investor-header {
+            padding: 20px 60px 20px 20px;
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.12) 0%, rgba(251, 191, 36, 0.06) 100%);
+            border-bottom: 1px solid rgba(234, 179, 8, 0.15);
+        }
+
+        .investor-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .investor-title-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #eab308 0%, #fbbf24 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+        }
+
+        .investor-title-icon svg {
+            width: 18px;
+            height: 18px;
+            color: #18181b;
+        }
+
+        .investor-text h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fbbf24;
+            margin: 0;
+        }
+
+        .investor-text p {
+            font-size: 12px;
+            color: #a1a1aa;
+            margin: 2px 0 0 0;
+        }
+
+        .investor-date {
+            font-size: 11px;
+            color: #71717a;
+            margin-top: 8px;
+        }
+
+        .investor-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .investor-body {
+            padding: 20px;
+        }
+
+        .investor-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            gap: 16px;
+        }
+
+        .investor-loading .typing-indicator {
+            justify-content: center;
+        }
+
+        .investor-loading p {
+            font-size: 13px;
+            color: #71717a;
+        }
+
+        .investor-article {
+            line-height: 1.8;
+            color: rgba(250, 250, 250, 0.85);
+            font-size: 14px;
+        }
+
+        .investor-article h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fbbf24;
+            margin: 18px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .investor-article h4:first-child {
+            margin-top: 0;
+        }
+
+        .investor-article ul {
+            margin: 10px 0;
+            padding-left: 18px;
+        }
+
+        .investor-article li {
+            margin: 6px 0;
+            position: relative;
+        }
+
+        .investor-article li::marker {
+            color: #fbbf24;
+        }
+
+        .investor-article strong {
+            color: #fbbf24;
+        }
+
+        .investor-article .highlight-box {
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px solid rgba(234, 179, 8, 0.2);
+            border-radius: 10px;
+            padding: 14px;
+            margin: 14px 0;
+        }
+
+        .investor-article .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 10px;
+            padding: 14px;
+            margin: 14px 0;
+        }
+
+        .investor-article .success-box {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 10px;
+            padding: 14px;
+            margin: 14px 0;
+        }
+
+        .investor-refresh {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            padding: 10px 16px;
+            font-size: 12px;
+            color: #71717a;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 16px;
+        }
+
+        .investor-refresh:hover {
+            background: rgba(234, 179, 8, 0.1);
+            border-color: rgba(234, 179, 8, 0.3);
+            color: #fbbf24;
+        }
+
+        .investor-refresh:hover svg {
+            animation: spin 1s linear;
+        }
+
+        .investor-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            gap: 12px;
+            text-align: center;
+        }
+
+        .investor-error svg {
+            width: 40px;
+            height: 40px;
+            color: #ef4444;
+        }
+
+        .investor-error p {
+            font-size: 13px;
+            color: #a1a1aa;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 480px) {
+            .investor-panel {
+                right: 16px;
+                bottom: 90px;
+            }
+
+            .investor-panel.expanded {
+                width: calc(100vw - 32px);
+                right: 16px;
+            }
+
+            .investor-content {
+                max-height: 350px;
+            }
+        }
     </style>
 </head>
 <body class="dark">
@@ -805,14 +1314,73 @@
         </footer>
     </div>
 
+    <!-- Investor Insights Floating Panel -->
+    <div class="investor-panel collapsed" id="investor-panel">
+        <!-- Icon Button -->
+        <button class="investor-icon-btn" onclick="toggleInvestorPanel()" title="Investor Insights">
+            <svg class="icon-chart" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+            <svg class="icon-close" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+
+        <!-- Tooltip -->
+        <div class="investor-tooltip">Investor Insights</div>
+
+        <!-- Expanded Content -->
+        <div class="investor-expanded">
+            <div class="investor-header">
+                <div class="investor-title">
+                    <div class="investor-title-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                    </div>
+                    <div class="investor-text">
+                        <h3>Investor Insights</h3>
+                        <p>Daily analysis from Twitter/X</p>
+                    </div>
+                </div>
+                <div class="investor-date" id="investor-date">Loading...</div>
+            </div>
+            <div class="investor-content" id="investor-content">
+                <div class="investor-body">
+                    <div class="investor-loading" id="investor-loading">
+                        <div class="typing-indicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                        <p>Loading investor insights...</p>
+                    </div>
+                    <div class="investor-article" id="investor-article" style="display: none;"></div>
+                    <button class="investor-refresh" onclick="loadInvestorInsights(true)">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Refresh insights
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_ENDPOINT = '/api/chat';
+        const STREAM_ENDPOINT = '/api/chat/stream';
         const HEALTH_ENDPOINT = '/health';
         const SUGGESTIONS_ENDPOINT = '/api/suggestions';
+        const INVESTOR_ENDPOINT = '/api/investor-insights';
         const MAX_HISTORY = 5; // จำบทสนทนา 5 ครั้งล่าสุด
+        const USE_STREAMING = true; // เปิดใช้งาน streaming mode
 
         // Conversation history storage
         let conversationHistory = [];
+        let thinkingContainerCounter = 0;
+        let investorPanelExpanded = false;
+        let investorInsightsLoaded = false;
 
         const defaultSuggestions = [
             {"question": "What are the latest breakthroughs in AI?", "description": "Recent AI developments", "category": "Technology"},
@@ -820,6 +1388,112 @@
             {"question": "What's trending in the world today?", "description": "Current global events", "category": "News"},
             {"question": "สอนทำอาหารไทยง่ายๆ สักจาน", "description": "สูตรอาหารไทย", "category": "Culture"}
         ];
+
+        // ===== INVESTOR INSIGHTS FUNCTIONS =====
+
+        function toggleInvestorPanel() {
+            const panel = document.getElementById('investor-panel');
+
+            if (panel.classList.contains('collapsed')) {
+                // Expand
+                panel.classList.remove('collapsed');
+                panel.classList.add('expanded');
+                investorPanelExpanded = true;
+
+                // Load insights if not loaded yet
+                if (!investorInsightsLoaded) {
+                    loadInvestorInsights();
+                }
+            } else {
+                // Collapse
+                panel.classList.remove('expanded');
+                panel.classList.add('collapsed');
+                investorPanelExpanded = false;
+            }
+        }
+
+        function formatInvestorDate(dateStr) {
+            const date = new Date(dateStr);
+            const options = {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function formatInvestorContent(content) {
+            let formatted = escapeHtml(content);
+
+            // Headers (## and ###)
+            formatted = formatted.replace(/^### (.+)$/gm, '<h4>$1</h4>');
+            formatted = formatted.replace(/^## (.+)$/gm, '<h4>$1</h4>');
+
+            // Bold
+            formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+            // Highlight boxes
+            formatted = formatted.replace(/\[HIGHLIGHT\]([\s\S]*?)\[\/HIGHLIGHT\]/g, '<div class="highlight-box">$1</div>');
+            formatted = formatted.replace(/\[WARNING\]([\s\S]*?)\[\/WARNING\]/g, '<div class="warning-box">$1</div>');
+            formatted = formatted.replace(/\[SUCCESS\]([\s\S]*?)\[\/SUCCESS\]/g, '<div class="success-box">$1</div>');
+
+            // Lists
+            formatted = formatted.replace(/^- (.+)$/gm, '<li>$1</li>');
+            formatted = formatted.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+
+            // Line breaks
+            formatted = formatted.replace(/\n\n/g, '</p><p>');
+            formatted = formatted.replace(/\n/g, '<br>');
+
+            return `<p>${formatted}</p>`;
+        }
+
+        async function loadInvestorInsights(forceRefresh = false) {
+            const loading = document.getElementById('investor-loading');
+            const article = document.getElementById('investor-article');
+            const dateEl = document.getElementById('investor-date');
+
+            // Show loading
+            loading.style.display = 'flex';
+            article.style.display = 'none';
+
+            try {
+                const url = forceRefresh ? `${INVESTOR_ENDPOINT}?refresh=true` : INVESTOR_ENDPOINT;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.status === 'success' && data.content) {
+                    // Update date
+                    dateEl.textContent = formatInvestorDate(data.generated_at || new Date().toISOString());
+
+                    // Update content
+                    article.innerHTML = formatInvestorContent(data.content);
+                    article.style.display = 'block';
+                    investorInsightsLoaded = true;
+                } else {
+                    throw new Error(data.error || 'Failed to load insights');
+                }
+            } catch (error) {
+                console.error('Failed to load investor insights:', error);
+                article.innerHTML = `
+                    <div class="investor-error">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p>Failed to load investor insights. Please try again.</p>
+                    </div>
+                `;
+                article.style.display = 'block';
+                dateEl.textContent = 'Error';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // ===== END INVESTOR INSIGHTS FUNCTIONS =====
 
         function renderSuggestions(suggestions) {
             const container = document.getElementById('suggestions-container');
@@ -1027,6 +1701,280 @@
             return formatted;
         }
 
+        // ===== STREAMING FUNCTIONS =====
+
+        function createThinkingContainer() {
+            const chatDiv = document.getElementById('chat');
+            const welcomeMsg = document.getElementById('welcome-message');
+            if (welcomeMsg) welcomeMsg.remove();
+
+            const containerId = 'thinking-' + (thinkingContainerCounter++);
+
+            const html = `
+                <div id="${containerId}" class="thinking-container fade-in">
+                    <div class="thinking-header" onclick="toggleThinking('${containerId}')">
+                        <div class="thinking-icon">
+                            <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                        </div>
+                        <span class="thinking-label">กำลังคิด...</span>
+                        <div class="thinking-toggle">
+                            <svg class="w-4 h-4 chevron-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="thinking-content" id="${containerId}-content">
+                        <div class="thinking-text"></div>
+                    </div>
+                </div>
+            `;
+
+            chatDiv.insertAdjacentHTML('beforeend', html);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+            return containerId;
+        }
+
+        function createAnswerContainer() {
+            const chatDiv = document.getElementById('chat');
+            const containerId = 'answer-' + Date.now();
+
+            const html = `
+                <div id="${containerId}" class="assistant-msg fade-in" style="display: none;" data-accumulated="">
+                    <div class="msg-header">
+                        <div class="msg-avatar msg-avatar-ai">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <span class="msg-name">MyAI Assist</span>
+                        <div class="streaming-indicator">
+                            <div class="streaming-dot"></div>
+                            <span class="streaming-text">กำลังตอบ...</span>
+                        </div>
+                    </div>
+                    <div class="answer-content" style="line-height: 1.7; color: rgba(250,250,250,0.9);"></div>
+                </div>
+            `;
+
+            chatDiv.insertAdjacentHTML('beforeend', html);
+            return containerId;
+        }
+
+        function toggleThinking(containerId) {
+            const content = document.getElementById(containerId + '-content');
+            const chevron = document.querySelector(`#${containerId} .chevron-icon`);
+
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                chevron.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('collapsed');
+                chevron.style.transform = 'rotate(-90deg)';
+            }
+        }
+
+        function updateThinkingStatus(containerId, message) {
+            const label = document.querySelector(`#${containerId} .thinking-label`);
+            if (label) label.textContent = message;
+        }
+
+        function appendThinkingContent(containerId, text) {
+            const contentDiv = document.querySelector(`#${containerId}-content .thinking-text`);
+            if (contentDiv) {
+                contentDiv.innerHTML += escapeHtml(text).replace(/\n/g, '<br>');
+                const container = document.getElementById(containerId + '-content');
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        function showAnswerContainer(containerId) {
+            const container = document.getElementById(containerId);
+            if (container && container.style.display === 'none') {
+                container.style.display = 'block';
+                const chatDiv = document.getElementById('chat');
+                chatDiv.scrollTop = chatDiv.scrollHeight;
+            }
+        }
+
+        function appendAnswerContent(containerId, text, accumulated) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const contentDiv = container.querySelector('.answer-content');
+            container.dataset.accumulated = accumulated;
+
+            // Re-render with full markdown formatting
+            contentDiv.innerHTML = formatMessage(accumulated);
+
+            // Scroll to bottom
+            const chatDiv = document.getElementById('chat');
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        function finalizeThinking(containerId) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                const icon = container.querySelector('.thinking-icon svg');
+                if (icon) icon.classList.remove('animate-pulse');
+
+                const label = container.querySelector('.thinking-label');
+                if (label) label.textContent = 'วิธีคิด (Chain of Thought)';
+
+                container.classList.add('thinking-complete');
+
+                // Auto-collapse after completion
+                const content = document.getElementById(containerId + '-content');
+                const chevron = container.querySelector('.chevron-icon');
+                if (content && !content.classList.contains('collapsed')) {
+                    content.classList.add('collapsed');
+                    if (chevron) chevron.style.transform = 'rotate(-90deg)';
+                }
+            }
+        }
+
+        function finalizeAnswer(containerId) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                const indicator = container.querySelector('.streaming-indicator');
+                if (indicator) indicator.remove();
+            }
+        }
+
+        function removeElement(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-8px)';
+                el.style.transition = 'all 0.2s ease';
+                setTimeout(() => el.remove(), 200);
+            }
+        }
+
+        function handleStreamEvent(eventType, data, thinkingId, answerId) {
+            switch (eventType) {
+                case 'status':
+                    updateThinkingStatus(thinkingId, data.message);
+                    break;
+                case 'thinking':
+                    appendThinkingContent(thinkingId, data.text);
+                    break;
+                case 'answer':
+                    showAnswerContainer(answerId);
+                    appendAnswerContent(answerId, data.text, data.accumulated);
+                    break;
+                case 'complete':
+                    finalizeThinking(thinkingId);
+                    finalizeAnswer(answerId);
+                    break;
+                case 'error':
+                    removeElement(thinkingId);
+                    addMessage(`Error: ${data.message || data.error}`, 'error');
+                    break;
+                case 'done':
+                    // Streaming completed
+                    break;
+            }
+        }
+
+        async function sendMessageStreaming() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            const sendBtn = document.getElementById('send-btn');
+            const sendBtnText = document.getElementById('send-btn-text');
+
+            sendBtn.disabled = true;
+            if (sendBtnText) sendBtnText.textContent = '...';
+
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+            input.style.height = 'auto';
+
+            // Create thinking and answer containers
+            const thinkingId = createThinkingContainer();
+            const answerId = createAnswerContainer();
+
+            try {
+                const response = await fetch(STREAM_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        history: conversationHistory
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+
+                    // Process SSE messages
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // Keep incomplete line
+
+                    let eventType = null;
+                    for (const line of lines) {
+                        if (line.startsWith('event: ')) {
+                            eventType = line.substring(7);
+                        } else if (line.startsWith('data: ') && eventType) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                handleStreamEvent(eventType, data, thinkingId, answerId);
+                            } catch (e) {
+                                console.error('Failed to parse SSE data:', e);
+                            }
+                        }
+                    }
+                }
+
+                // Update conversation history
+                const answerContainer = document.getElementById(answerId);
+                if (answerContainer) {
+                    const finalAnswer = answerContainer.dataset.accumulated;
+                    if (finalAnswer) {
+                        conversationHistory.push(
+                            { role: 'user', content: message },
+                            { role: 'assistant', content: finalAnswer }
+                        );
+
+                        // Keep only last 5 conversations
+                        if (conversationHistory.length > MAX_HISTORY * 2) {
+                            conversationHistory = conversationHistory.slice(-MAX_HISTORY * 2);
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('Streaming error:', error);
+                removeElement(thinkingId);
+                removeElement(answerId);
+                addMessage(`Error: ${error.message}\n\nPlease try again.`, 'error');
+            } finally {
+                sendBtn.disabled = false;
+                if (sendBtnText) sendBtnText.textContent = 'Send';
+                input.focus();
+            }
+        }
+
+        // ===== END STREAMING FUNCTIONS =====
+
         function addMessage(content, type, metadata = {}) {
             const chatDiv = document.getElementById('chat');
             const welcomeMsg = document.getElementById('welcome-message');
@@ -1118,7 +2066,16 @@
             sendMessage();
         }
 
+        // Main send function - routes to streaming or standard based on config
         async function sendMessage() {
+            if (USE_STREAMING) {
+                return sendMessageStreaming();
+            }
+            return sendMessageStandard();
+        }
+
+        // Standard (non-streaming) message sending
+        async function sendMessageStandard() {
             const input = document.getElementById('message-input');
             const message = input.value.trim();
 

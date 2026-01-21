@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context
 from flask_cors import CORS
 import requests
 import os
 import time
 import logging
 import inspect
+import json
 
 # Setup logging
 logging.basicConfig(
@@ -175,6 +176,107 @@ def call_gemini(user_message, history=None, max_retries=2):
             time.sleep(5)
 
     return None
+
+
+def stream_gemini_with_thinking(user_message, history=None):
+    """
+    Stream Gemini response with thinking mode (Chain of Thought)
+
+    Args:
+        user_message: User's question
+        history: List of previous conversation messages
+
+    Yields:
+        tuples of (event_type, content) where event_type is:
+        - 'status': Status updates
+        - 'thinking': AI reasoning/thinking content
+        - 'answer': Final answer content
+        - 'complete': Completion signal
+        - 'error': Error message
+    """
+    if not gemini_client:
+        yield ('error', {'message': 'Gemini client not initialized'})
+        return
+
+    # Build conversation context from history
+    history_context = ""
+    if history and len(history) > 0:
+        history_context = "\n\nPrevious conversation:\n"
+        for msg in history:
+            role = "User" if msg.get("role") == "user" else "Assistant"
+            history_context += f"{role}: {msg.get('content', '')}\n"
+        history_context += "\n"
+
+    full_prompt = f"{GEMINI_SYSTEM_PROMPT}{history_context}\n\nUser Question: {user_message}"
+
+    try:
+        # Signal start
+        yield ('status', {'phase': 'thinking', 'message': 'กำลังวิเคราะห์คำถาม...'})
+
+        accumulated_thought = ""
+        accumulated_answer = ""
+
+        # Try streaming with thinking mode
+        try:
+            from google.genai import types
+
+            # Configure thinking mode
+            config = types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(
+                    include_thoughts=True,
+                    thinking_budget=8192
+                )
+            )
+
+            for chunk in gemini_client.models.generate_content_stream(
+                model="gemini-3-flash-preview",
+                contents=full_prompt,
+                config=config
+            ):
+                if chunk.candidates and chunk.candidates[0].content:
+                    for part in chunk.candidates[0].content.parts:
+                        if hasattr(part, 'thought') and part.thought:
+                            # This is thinking/reasoning content
+                            if part.text:
+                                accumulated_thought += part.text
+                                yield ('thinking', {
+                                    'text': part.text,
+                                    'accumulated': accumulated_thought
+                                })
+                        elif part.text:
+                            # This is the actual answer
+                            accumulated_answer += part.text
+                            yield ('answer', {
+                                'text': part.text,
+                                'accumulated': accumulated_answer
+                            })
+
+        except Exception as thinking_error:
+            # Fallback: Stream without thinking mode if thinking mode fails
+            logger.warning(f"Thinking mode failed, using standard streaming: {thinking_error}")
+
+            yield ('status', {'phase': 'answering', 'message': 'กำลังตอบคำถาม...'})
+
+            for chunk in gemini_client.models.generate_content_stream(
+                model="gemini-3-flash-preview",
+                contents=full_prompt
+            ):
+                if chunk.text:
+                    accumulated_answer += chunk.text
+                    yield ('answer', {
+                        'text': chunk.text,
+                        'accumulated': accumulated_answer
+                    })
+
+        # Signal completion
+        yield ('complete', {
+            'thinking': accumulated_thought,
+            'answer': accumulated_answer
+        })
+
+    except Exception as e:
+        logger.error(f"Streaming error: {str(e)}")
+        yield ('error', {'message': str(e)})
 
 
 def call_groq(user_message, history=None, max_retries=2):
@@ -372,6 +474,49 @@ Please process, refine, and enhance this answer. Provide a comprehensive, well-s
 def index():
     """Serve the main HTML page"""
     return render_template('index.html')
+
+
+@app.route('/api/chat/stream', methods=['POST'])
+def chat_stream():
+    """
+    Streaming chat endpoint with Chain of Thought visualization
+    Uses Server-Sent Events (SSE) to stream responses in real-time
+    """
+    data = request.json
+    user_message = data.get('message', '').strip()
+    history = data.get('history', [])
+
+    if not user_message:
+        return jsonify({'error': 'Message is required', 'status': 'error'}), 400
+
+    logger.info(f"\n{'='*60}")
+    logger.info(f"[STREAM] New Message: {user_message}")
+    logger.info(f"[STREAM] History: {len(history)} messages")
+    logger.info(f"{'='*60}")
+
+    def generate():
+        try:
+            for event_type, content in stream_gemini_with_thinking(user_message, history):
+                # SSE format: "event: type\ndata: content\n\n"
+                yield f"event: {event_type}\ndata: {json.dumps(content, ensure_ascii=False)}\n\n"
+
+            # Signal completion
+            yield f"event: done\ndata: {json.dumps({'status': 'complete'})}\n\n"
+
+        except Exception as e:
+            logger.error(f"Streaming error: {str(e)}")
+            yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'X-Accel-Buffering': 'no',
+            'Access-Control-Allow-Origin': '*'
+        }
+    )
 
 
 @app.route('/api/chat', methods=['POST'])
@@ -667,6 +812,212 @@ Make questions engaging, varied, and relevant to today. Include at least 1-2 Tha
 
     # Final fallback to default suggestions
     return jsonify({'suggestions': get_default_suggestions(), 'status': 'fallback', 'source': 'default'})
+
+
+# ===== INVESTOR INSIGHTS =====
+
+# Cache for investor insights (simple in-memory cache)
+investor_insights_cache = {
+    'content': None,
+    'generated_at': None,
+    'date': None,
+    'twitter_data': None
+}
+
+# List of Twitter accounts to follow for investor insights
+INVESTOR_TWITTER_ACCOUNTS = [
+    "@setthailand",      # SET Thailand official
+    "@stockthailand",    # Thai stock news
+    "@efinancethai",     # E-Finance Thai
+    "@MoneyChannelTV",   # Money Channel
+    "@taborrowสามัคคี",   # Thai investor community
+    "@Bloomberg",        # Bloomberg
+    "@Reuters",          # Reuters
+    "@WSJ",              # Wall Street Journal
+    "@ABORROWCNBC",            # CNBC
+    "@FinancialTimes",   # Financial Times
+]
+
+def fetch_twitter_data_via_gemini():
+    """
+    Use Gemini with Google Search to fetch latest tweets from investor accounts
+    """
+    if not gemini_client:
+        return None
+
+    try:
+        from google.genai import types
+
+        # Create search prompt to get Twitter data
+        search_prompt = f"""ค้นหาข้อมูลล่าสุดจาก Twitter/X เกี่ยวกับการลงทุนและตลาดหุ้นวันนี้
+
+ค้นหาจากบัญชี Twitter ที่สำคัญ เช่น:
+- SET Thailand, ตลาดหลักทรัพย์แห่งประเทศไทย
+- นักวิเคราะห์หุ้นไทย, กูรูหุ้น
+- Bloomberg, Reuters, CNBC
+- ข่าวเศรษฐกิจและการเงิน
+
+สิ่งที่ต้องการ:
+1. ข่าวสำคัญที่ถูกพูดถึงใน Twitter วันนี้
+2. หุ้นที่ถูก mention บ่อย
+3. ความเห็นของนักวิเคราะห์
+4. Sentiment โดยรวมของตลาด (bullish/bearish)
+5. ข่าวที่อาจกระทบตลาดหุ้นไทย
+
+ค้นหาข้อมูลล่าสุดจาก Twitter และ X.com"""
+
+        # Use Gemini with Google Search tool
+        config = types.GenerateContentConfig(
+            tools=[types.Tool(google_search=types.GoogleSearch())]
+        )
+
+        response = gemini_client.models.generate_content(
+            model="gemini-3-flash-preview",
+            contents=search_prompt,
+            config=config
+        )
+
+        return response.text
+
+    except Exception as e:
+        logger.error(f"Error fetching Twitter data via Gemini: {str(e)}")
+        return None
+
+
+def generate_investor_insights():
+    """Generate daily investor insights using Gemini API with Twitter data"""
+    from datetime import datetime
+
+    today = datetime.now().strftime('%Y-%m-%d')
+
+    # Check cache - return cached if same day
+    if investor_insights_cache['date'] == today and investor_insights_cache['content']:
+        return investor_insights_cache['content'], investor_insights_cache['generated_at']
+
+    # Step 1: Fetch Twitter data via Gemini Search
+    logger.info("Fetching Twitter data for investor insights...")
+    twitter_data = fetch_twitter_data_via_gemini()
+
+    if twitter_data:
+        logger.info(f"Twitter data fetched: {len(twitter_data)} characters")
+        investor_insights_cache['twitter_data'] = twitter_data
+    else:
+        logger.warning("Could not fetch Twitter data, using general analysis")
+        twitter_data = "ไม่สามารถดึงข้อมูลจาก Twitter ได้ กรุณาวิเคราะห์จากข้อมูลทั่วไป"
+
+    # Step 2: Generate analysis based on Twitter data
+    prompt = f"""คุณเป็นนักวิเคราะห์การเงินมืออาชีพ กรุณาเขียนบทความวิเคราะห์สำหรับนักลงทุนในวันนี้
+
+## ข้อมูลจาก Twitter/X ที่รวบรวมได้:
+{twitter_data}
+
+---
+
+จากข้อมูลข้างต้น กรุณาเขียนบทความวิเคราะห์ตามโครงสร้างนี้:
+
+## 📊 สรุปภาพรวมตลาดวันนี้
+- วิเคราะห์สถานการณ์ตลาดหุ้นไทยและตลาดโลก
+- ปัจจัยสำคัญที่ส่งผลต่อตลาด
+- Sentiment จาก Twitter (bullish/bearish/neutral)
+
+## 🐦 Trending จาก Twitter/X
+- หัวข้อที่ถูกพูดถึงมากที่สุด
+- หุ้นที่ถูก mention บ่อย
+- ความเห็นจากนักวิเคราะห์และ influencer
+
+## 📰 สิ่งที่นักลงทุนต้องรู้วันนี้
+- ข่าวสำคัญที่ส่งผลต่อการลงทุน
+- ตัวเลขเศรษฐกิจที่ประกาศ
+- เหตุการณ์สำคัญที่ต้องติดตาม
+
+## 🎯 กลุ่มหุ้นน่าจับตา
+- กลุ่มอุตสาหกรรมที่มีโอกาส
+- หุ้นที่มีข่าวหรือปัจจัยพิเศษ
+
+## 💡 คำแนะนำการลงทุน
+- กลยุทธ์สำหรับนักลงทุนระยะสั้น
+- แนวทางสำหรับนักลงทุนระยะยาว
+
+## ⚠️ ความเสี่ยงที่ต้องระวัง
+- ปัจจัยเสี่ยงที่อาจกระทบพอร์ต
+- สัญญาณเตือนจาก Social Media
+
+[WARNING]การลงทุนมีความเสี่ยง ข้อมูลจาก Twitter เป็นเพียงความเห็นส่วนตัว ควรศึกษาข้อมูลเพิ่มเติมก่อนตัดสินใจลงทุน[/WARNING]
+
+เขียนเนื้อหาให้กระชับ อ่านง่าย อ้างอิงข้อมูลจาก Twitter ที่ให้มา"""
+
+    if gemini_client:
+        try:
+            response = gemini_client.models.generate_content(
+                model="gemini-3-flash-preview",
+                contents=prompt
+            )
+
+            content = response.text
+            generated_at = datetime.now().isoformat()
+
+            # Update cache
+            investor_insights_cache['content'] = content
+            investor_insights_cache['generated_at'] = generated_at
+            investor_insights_cache['date'] = today
+
+            return content, generated_at
+
+        except Exception as e:
+            logger.error(f"Error generating investor insights: {str(e)}")
+            return None, None
+
+    return None, None
+
+
+@app.route('/api/investor-insights')
+def get_investor_insights():
+    """Get daily investor insights analysis with Twitter data"""
+    from datetime import datetime
+
+    refresh = request.args.get('refresh', 'false').lower() == 'true'
+
+    # Clear cache if refresh requested
+    if refresh:
+        investor_insights_cache['content'] = None
+        investor_insights_cache['date'] = None
+        investor_insights_cache['twitter_data'] = None
+
+    content, generated_at = generate_investor_insights()
+
+    if content:
+        return jsonify({
+            'status': 'success',
+            'content': content,
+            'generated_at': generated_at,
+            'cached': investor_insights_cache['date'] == datetime.now().strftime('%Y-%m-%d') and not refresh,
+            'source': 'twitter_gemini_search',
+            'has_twitter_data': bool(investor_insights_cache.get('twitter_data'))
+        })
+    else:
+        # Return fallback content
+        fallback_content = """## สรุปภาพรวมตลาดวันนี้
+
+ขณะนี้ไม่สามารถดึงข้อมูลวิเคราะห์ได้ กรุณาลองใหม่อีกครั้ง
+
+## คำแนะนำทั่วไป
+
+- **ติดตามข่าวสาร**: อ่านข่าวจากแหล่งข้อมูลที่น่าเชื่อถือ
+- **วิเคราะห์ก่อนลงทุน**: ศึกษาพื้นฐานบริษัทก่อนตัดสินใจ
+- **กระจายความเสี่ยง**: ไม่ลงทุนหุ้นตัวเดียว
+- **ตั้ง Stop Loss**: กำหนดจุดตัดขาดทุนเสมอ
+
+## ความเสี่ยงที่ต้องระวัง
+
+[WARNING]การลงทุนมีความเสี่ยง ผู้ลงทุนควรศึกษาข้อมูลก่อนตัดสินใจลงทุน[/WARNING]"""
+
+        return jsonify({
+            'status': 'success',
+            'content': fallback_content,
+            'generated_at': datetime.now().isoformat(),
+            'cached': False,
+            'is_fallback': True
+        })
 
 
 if __name__ == '__main__':
