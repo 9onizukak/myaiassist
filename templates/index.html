@@ -403,6 +403,8 @@
             padding: 0;
             border: none;
             font-size: inherit;
+            white-space: pre;
+            display: block;
         }
 
         /* Syntax highlighting colors */
@@ -424,6 +426,8 @@
             font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
             font-size: 0.9em;
             border: 1px solid rgba(139, 92, 246, 0.2);
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
         /* Thinking Container - Chain of Thought */
@@ -654,6 +658,8 @@
             overflow-x: auto;
             margin: 14px 0;
             border: 1px solid rgba(255, 255, 255, 0.06);
+            white-space: pre;
+            tab-size: 4;
             font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
         }
 
@@ -828,7 +834,80 @@
             bottom: 100px;
             right: 24px;
             z-index: 100;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                        height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                        box-shadow 0.3s ease;
+            user-select: none;
+        }
+
+        .investor-panel.dragging {
+            transition: none !important;
+            cursor: grabbing !important;
+        }
+
+        .investor-panel.dragging * {
+            cursor: grabbing !important;
+        }
+
+        /* Drag Handle */
+        .investor-drag-handle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            cursor: grab;
+            z-index: 15;
+            touch-action: none;
+        }
+
+        .investor-panel.expanded .investor-drag-handle {
+            height: 60px;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .investor-panel.collapsed .investor-drag-handle {
+            cursor: grab !important;
+            border-radius: 16px;
+        }
+
+        .investor-drag-handle:hover {
+            cursor: grab;
+        }
+
+        .investor-drag-handle:active {
+            cursor: grabbing !important;
+        }
+
+        .investor-panel.dragging .investor-drag-handle {
+            cursor: grabbing !important;
+        }
+
+        /* Drag indicator dots */
+        .drag-indicator {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 3px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .investor-panel.expanded .drag-indicator {
+            opacity: 0.3;
+        }
+
+        .investor-panel.expanded:hover .drag-indicator {
+            opacity: 0.6;
+        }
+
+        .drag-indicator span {
+            width: 4px;
+            height: 4px;
+            background: #fbbf24;
+            border-radius: 50%;
         }
 
         /* Collapsed State - Icon Only */
@@ -886,6 +965,12 @@
             position: relative;
             overflow: hidden;
             z-index: 10;
+            pointer-events: none;
+        }
+
+        .investor-panel.expanded .investor-icon-btn {
+            pointer-events: auto;
+            z-index: 20;
         }
 
         .investor-icon-btn::before {
@@ -1191,6 +1276,231 @@
                 max-height: 350px;
             }
         }
+
+        /* ===== SNOW MODE ===== */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            z-index: 9999;
+            color: #fff;
+            font-size: 1em;
+            font-family: Arial, sans-serif;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+            pointer-events: none;
+            user-select: none;
+            animation: snowfall linear infinite;
+        }
+
+        @keyframes snowfall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0.8;
+            }
+        }
+
+        /* Snow Toggle Button */
+        .snow-toggle {
+            position: fixed;
+            bottom: 180px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4), 0 0 0 0 rgba(59, 130, 246, 0.4);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            z-index: 99;
+        }
+
+        /* Pulse animation for snow button */
+        .snow-toggle {
+            animation: snow-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes snow-pulse {
+            0%, 100% {
+                box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4), 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4), 0 0 0 8px rgba(59, 130, 246, 0);
+            }
+        }
+
+        .snow-toggle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .snow-toggle:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.5), 0 0 0 4px rgba(59, 130, 246, 0.2);
+            animation: none;
+        }
+
+        .snow-toggle:hover::before {
+            opacity: 1;
+        }
+
+        .snow-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .snow-toggle svg {
+            width: 28px;
+            height: 28px;
+            color: white;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .snow-toggle:hover svg {
+            transform: scale(1.15) rotate(15deg);
+        }
+
+        /* Active state (snow mode on) */
+        .snow-toggle.active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            animation: snow-active-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes snow-active-pulse {
+            0%, 100% {
+                box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5), 0 0 0 0 rgba(16, 185, 129, 0.5);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5), 0 0 0 8px rgba(16, 185, 129, 0);
+            }
+        }
+
+        .snow-toggle.active::before {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        }
+
+        .snow-toggle.active:hover {
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.6), 0 0 0 4px rgba(16, 185, 129, 0.2);
+        }
+
+        .snow-toggle.active svg {
+            animation: snowflake-float 3s ease-in-out infinite;
+        }
+
+        .snow-toggle.active:hover svg {
+            animation: snowflake-spin 2s linear infinite;
+        }
+
+        @keyframes snowflake-float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-3px) rotate(5deg);
+            }
+            75% {
+                transform: translateY(3px) rotate(-5deg);
+            }
+        }
+
+        @keyframes snowflake-spin {
+            0% { transform: rotate(0deg) scale(1.15); }
+            100% { transform: rotate(360deg) scale(1.15); }
+        }
+
+        /* Snowflakes particles around button when active */
+        .snow-toggle.active::after {
+            content: '❄';
+            position: absolute;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            animation: particle-float 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes particle-float {
+            0% {
+                top: 50%;
+                left: 50%;
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0);
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                top: -20px;
+                left: 50%;
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.5);
+            }
+        }
+
+        /* Tooltip for snow button */
+        .snow-tooltip {
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-right: 12px;
+            padding: 8px 14px;
+            background: rgba(24, 24, 27, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #60a5fa;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+
+        .snow-tooltip::after {
+            content: '';
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-left-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .snow-toggle:hover .snow-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .snow-toggle.active .snow-tooltip {
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+
+        .snow-toggle.active .snow-tooltip::after {
+            border-left-color: rgba(16, 185, 129, 0.3);
+        }
+
+        @media (max-width: 480px) {
+            .snow-toggle {
+                bottom: 170px;
+                right: 16px;
+            }
+        }
     </style>
 </head>
 <body class="dark">
@@ -1316,8 +1626,17 @@
 
     <!-- Investor Insights Floating Panel -->
     <div class="investor-panel collapsed" id="investor-panel">
+        <!-- Drag Handle (covers the whole panel in collapsed, only header in expanded) -->
+        <div class="investor-drag-handle" id="investor-drag-handle">
+            <div class="drag-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
         <!-- Icon Button -->
-        <button class="investor-icon-btn" onclick="toggleInvestorPanel()" title="Investor Insights">
+        <button class="investor-icon-btn" id="investor-icon-btn" title="Investor Insights">
             <svg class="icon-chart" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
             </svg>
@@ -1327,7 +1646,7 @@
         </button>
 
         <!-- Tooltip -->
-        <div class="investor-tooltip">Investor Insights</div>
+        <div class="investor-tooltip">Investor Insights (Drag to move)</div>
 
         <!-- Expanded Content -->
         <div class="investor-expanded">
@@ -1367,6 +1686,17 @@
         </div>
     </div>
 
+    <!-- Snow Toggle Button -->
+    <button class="snow-toggle" id="snow-toggle" onclick="toggleSnowMode()">
+        <span class="snow-tooltip" id="snow-tooltip">Enable Snow Mode ❄️</span>
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07M12 6l-2 2m4 0l-2-2m0 12l-2-2m4 0l-2 2M6 12l2-2m0 4l-2-2m12 0l2-2m0 4l-2-2"/>
+        </svg>
+    </button>
+
+    <!-- Snow Container -->
+    <div id="snow-container"></div>
+
     <script>
         const API_ENDPOINT = '/api/chat';
         const STREAM_ENDPOINT = '/api/chat/stream';
@@ -1382,6 +1712,19 @@
         let investorPanelExpanded = false;
         let investorInsightsLoaded = false;
 
+        // Drag state for investor panel
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let panelStartX = 0;
+        let panelStartY = 0;
+        let hasDragged = false;
+
+        // Snow mode state
+        let snowModeActive = false;
+        let snowflakes = [];
+        let snowInterval = null;
+
         const defaultSuggestions = [
             {"question": "What are the latest breakthroughs in AI?", "description": "Recent AI developments", "category": "Technology"},
             {"question": "อธิบายเรื่อง Quantum Computing แบบง่ายๆ", "description": "เรียนรู้เทคโนโลยีใหม่", "category": "Science"},
@@ -1392,6 +1735,12 @@
         // ===== INVESTOR INSIGHTS FUNCTIONS =====
 
         function toggleInvestorPanel() {
+            // Don't toggle if we just dragged
+            if (hasDragged) {
+                hasDragged = false;
+                return;
+            }
+
             const panel = document.getElementById('investor-panel');
 
             if (panel.classList.contains('collapsed')) {
@@ -1411,6 +1760,256 @@
                 investorPanelExpanded = false;
             }
         }
+
+        // ===== DRAG FUNCTIONALITY =====
+        function initInvestorPanelDrag() {
+            const panel = document.getElementById('investor-panel');
+            const dragHandle = document.getElementById('investor-drag-handle');
+            const iconBtn = document.getElementById('investor-icon-btn');
+
+            if (!panel || !dragHandle) return;
+
+            // Mouse events
+            dragHandle.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+
+            // Touch events for mobile
+            dragHandle.addEventListener('touchstart', startDrag, { passive: false });
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('touchend', endDrag);
+
+            // Icon button click (only if not dragging) - for expanded state
+            iconBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!hasDragged) {
+                    toggleInvestorPanel();
+                }
+                hasDragged = false;
+            });
+
+            // Drag handle click (only if not dragging) - for collapsed state
+            dragHandle.addEventListener('click', (e) => {
+                if (!hasDragged && panel.classList.contains('collapsed')) {
+                    toggleInvestorPanel();
+                }
+            });
+
+            function startDrag(e) {
+                // Get coordinates
+                const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+                isDragging = true;
+                hasDragged = false;
+                dragStartX = clientX;
+                dragStartY = clientY;
+
+                // Get current panel position
+                const rect = panel.getBoundingClientRect();
+                panelStartX = rect.left;
+                panelStartY = rect.top;
+
+                panel.classList.add('dragging');
+
+                if (e.type === 'touchstart') {
+                    e.preventDefault();
+                }
+            }
+
+            function drag(e) {
+                if (!isDragging) return;
+
+                const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+                const deltaX = clientX - dragStartX;
+                const deltaY = clientY - dragStartY;
+
+                // Consider it a drag if moved more than 5px
+                if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+                    hasDragged = true;
+                }
+
+                // Calculate new position
+                let newX = panelStartX + deltaX;
+                let newY = panelStartY + deltaY;
+
+                // Get panel dimensions
+                const panelRect = panel.getBoundingClientRect();
+                const panelWidth = panelRect.width;
+                const panelHeight = panelRect.height;
+
+                // Constrain to viewport
+                const maxX = window.innerWidth - panelWidth;
+                const maxY = window.innerHeight - panelHeight;
+
+                newX = Math.max(0, Math.min(newX, maxX));
+                newY = Math.max(0, Math.min(newY, maxY));
+
+                // Apply position (using left/top instead of right/bottom for dragging)
+                panel.style.left = newX + 'px';
+                panel.style.top = newY + 'px';
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+
+                if (e.type === 'touchmove') {
+                    e.preventDefault();
+                }
+            }
+
+            function endDrag(e) {
+                if (!isDragging) return;
+
+                isDragging = false;
+                panel.classList.remove('dragging');
+
+                // Save position to localStorage
+                const rect = panel.getBoundingClientRect();
+                localStorage.setItem('investorPanelPos', JSON.stringify({
+                    left: rect.left,
+                    top: rect.top
+                }));
+            }
+
+            // Restore saved position
+            const savedPos = localStorage.getItem('investorPanelPos');
+            if (savedPos) {
+                try {
+                    const pos = JSON.parse(savedPos);
+                    // Validate position is within viewport
+                    if (pos.left >= 0 && pos.left < window.innerWidth - 56 &&
+                        pos.top >= 0 && pos.top < window.innerHeight - 56) {
+                        panel.style.left = pos.left + 'px';
+                        panel.style.top = pos.top + 'px';
+                        panel.style.right = 'auto';
+                        panel.style.bottom = 'auto';
+                    }
+                } catch (e) {
+                    console.error('Failed to restore panel position:', e);
+                }
+            }
+        }
+
+        // ===== SNOW MODE FUNCTIONS =====
+
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.innerHTML = '❄';
+
+            // Random position
+            snowflake.style.left = Math.random() * window.innerWidth + 'px';
+
+            // Random size (smaller - more delicate)
+            const size = Math.random() * 0.5 + 0.3; // 0.3-0.8em (was 0.5-2.0em)
+            snowflake.style.fontSize = size + 'em';
+
+            // Random animation duration (slower)
+            const duration = Math.random() * 12 + 15; // 15-27 seconds (was 10-20)
+            snowflake.style.animationDuration = duration + 's';
+
+            // Random delay
+            const delay = Math.random() * 8;
+            snowflake.style.animationDelay = delay + 's';
+
+            // Random opacity (more subtle)
+            snowflake.style.opacity = Math.random() * 0.4 + 0.2; // 0.2-0.6 (was 0.4-1.0)
+
+            return snowflake;
+        }
+
+        function startSnowfall() {
+            const container = document.getElementById('snow-container');
+
+            // Create initial snowflakes (fewer)
+            for (let i = 0; i < 30; i++) {
+                const snowflake = createSnowflake();
+                container.appendChild(snowflake);
+                snowflakes.push(snowflake);
+            }
+
+            // Add new snowflakes periodically (slower rate)
+            snowInterval = setInterval(() => {
+                if (snowflakes.length < 60) { // Max 60 (was 100)
+                    const snowflake = createSnowflake();
+                    container.appendChild(snowflake);
+                    snowflakes.push(snowflake);
+
+                    // Remove after animation completes
+                    setTimeout(() => {
+                        if (snowflake.parentNode) {
+                            snowflake.remove();
+                        }
+                        const index = snowflakes.indexOf(snowflake);
+                        if (index > -1) {
+                            snowflakes.splice(index, 1);
+                        }
+                    }, 27000); // Increased from 20000
+                }
+            }, 500); // Slower creation rate (was 300ms)
+        }
+
+        function stopSnowfall() {
+            const container = document.getElementById('snow-container');
+
+            // Clear interval
+            if (snowInterval) {
+                clearInterval(snowInterval);
+                snowInterval = null;
+            }
+
+            // Remove all snowflakes
+            snowflakes.forEach(snowflake => {
+                if (snowflake.parentNode) {
+                    snowflake.remove();
+                }
+            });
+            snowflakes = [];
+            container.innerHTML = '';
+        }
+
+        function toggleSnowMode() {
+            const button = document.getElementById('snow-toggle');
+            const tooltip = document.getElementById('snow-tooltip');
+
+            snowModeActive = !snowModeActive;
+
+            if (snowModeActive) {
+                // Enable snow mode
+                button.classList.add('active');
+                tooltip.textContent = 'Disable Snow Mode ✨';
+                startSnowfall();
+
+                // Save state
+                localStorage.setItem('snowMode', 'true');
+            } else {
+                // Disable snow mode
+                button.classList.remove('active');
+                tooltip.textContent = 'Enable Snow Mode ❄️';
+                stopSnowfall();
+
+                // Save state
+                localStorage.setItem('snowMode', 'false');
+            }
+        }
+
+        function initSnowMode() {
+            // Restore saved state
+            const savedState = localStorage.getItem('snowMode');
+            if (savedState === 'true') {
+                // Auto-enable if it was active before
+                const button = document.getElementById('snow-toggle');
+                const tooltip = document.getElementById('snow-tooltip');
+
+                snowModeActive = true;
+                button.classList.add('active');
+                tooltip.textContent = 'Disable Snow Mode ✨';
+                startSnowfall();
+            }
+        }
+
+        // ===== END SNOW MODE FUNCTIONS =====
 
         function formatInvestorDate(dateStr) {
             const date = new Date(dateStr);
@@ -2191,6 +2790,8 @@
         window.addEventListener('load', () => {
             checkHealth();
             loadSuggestions();
+            initInvestorPanelDrag();
+            initSnowMode();
             document.getElementById('message-input').focus();
         });
 

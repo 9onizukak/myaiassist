@@ -872,7 +872,7 @@ def fetch_twitter_data_via_gemini():
         )
 
         response = gemini_client.models.generate_content(
-            model="gemini-3-flash-preview",
+            model="gemini-2.5-flash-lite",
             contents=search_prompt,
             config=config
         )
@@ -949,7 +949,7 @@ def generate_investor_insights():
     if gemini_client:
         try:
             response = gemini_client.models.generate_content(
-                model="gemini-3-flash-preview",
+                model="gemini-2.5-flash-lite",
                 contents=prompt
             )
 
