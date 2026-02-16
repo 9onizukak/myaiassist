@@ -1032,4 +1032,6 @@ if __name__ == '__main__':
     logger.info("API: http://localhost:5000/api/chat")
     logger.info("Health: http://localhost:5000/health")
     logger.info("="*60 + "\n")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.getenv('PORT', 5000))
+    debug_mode = os.getenv('FLASK_ENV') == 'development'
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
