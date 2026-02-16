@@ -1,0 +1,24 @@
+{
+  "name": "myai-assist",
+  "version": "1.0.0",
+  "description": "MyAI Assist - AI Chatbot with Gemini and Typhoon",
+  "main": "app.py",
+  "scripts": {
+    "start": "python app.py",
+    "dev": "python app.py",
+    "build": "echo 'Python Flask application - no build needed'"
+  },
+  "keywords": [
+    "ai",
+    "chatbot",
+    "flask",
+    "gemini",
+    "typhoon"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.8.0"
+  }
+}
