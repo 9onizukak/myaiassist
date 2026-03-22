@@ -1501,6 +1501,785 @@
                 right: 16px;
             }
         }
+
+        /* ===== ENGLISH LEARNING PANEL ===== */
+
+        /* Duolingo Green Color Variables */
+        :root {
+            --duo-green: #58cc02;
+            --duo-green-dark: #4caf00;
+            --duo-green-light: #89e219;
+            --duo-green-glow: rgba(88, 204, 2, 0.4);
+            --duo-green-subtle: rgba(88, 204, 2, 0.1);
+            --duo-gold: #ffc800;
+            --duo-red: #ff4b4b;
+        }
+
+        .english-panel {
+            position: fixed;
+            bottom: 240px;
+            right: 24px;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+        }
+
+        .english-panel.dragging {
+            transition: none;
+            cursor: grabbing;
+            opacity: 0.9;
+        }
+
+        .english-panel.dragging * {
+            pointer-events: none;
+        }
+
+        /* Drag Handle */
+        .english-drag-handle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            cursor: grab;
+            z-index: 15;
+            touch-action: none;
+        }
+
+        .english-panel.expanded .english-drag-handle {
+            height: 60px;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .english-panel.collapsed .english-drag-handle {
+            cursor: grab !important;
+            border-radius: 16px;
+        }
+
+        .english-drag-handle:hover {
+            cursor: grab;
+        }
+
+        .english-drag-handle:active {
+            cursor: grabbing !important;
+        }
+
+        .english-panel.dragging .english-drag-handle {
+            cursor: grabbing !important;
+        }
+
+        /* English Panel Drag indicator dots */
+        .english-panel .drag-indicator {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 3px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .english-panel.expanded .drag-indicator {
+            opacity: 0.3;
+        }
+
+        .english-panel.expanded:hover .drag-indicator {
+            opacity: 0.6;
+        }
+
+        .english-panel .drag-indicator span {
+            width: 4px;
+            height: 4px;
+            background: var(--duo-green-light);
+            border-radius: 50%;
+        }
+
+        /* Collapsed State */
+        .english-panel.collapsed {
+            width: 56px;
+            height: 56px;
+        }
+
+        .english-panel.collapsed .english-expanded {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.95);
+        }
+
+        /* Expanded State */
+        .english-panel.expanded {
+            width: 420px;
+            max-width: calc(100vw - 48px);
+        }
+
+        .english-panel.expanded .english-icon-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            z-index: 20;
+        }
+
+        .english-panel.expanded .english-icon-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .english-panel.expanded .english-icon-btn .icon-learn {
+            display: none;
+        }
+
+        .english-panel.expanded .english-icon-btn .icon-close {
+            display: block;
+        }
+
+        .english-panel.expanded .english-icon-btn {
+            cursor: pointer;
+        }
+
+        /* Icon Button - Green Gradient */
+        .english-icon-btn {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #58cc02 0%, #4caf00 100%);
+            border: none;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: 0 4px 20px var(--duo-green-glow), 0 0 0 0 var(--duo-green-glow);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .english-icon-btn:active {
+            cursor: grabbing;
+        }
+
+        .english-icon-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #89e219 0%, #58cc02 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .english-icon-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 32px var(--duo-green-glow), 0 0 0 4px rgba(88, 204, 2, 0.2);
+        }
+
+        .english-icon-btn:hover::before {
+            opacity: 1;
+        }
+
+        .english-icon-btn svg {
+            width: 24px;
+            height: 24px;
+            color: white;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .english-icon-btn .icon-close {
+            display: none;
+        }
+
+        /* Pulse animation for attention */
+        .english-panel.collapsed .english-icon-btn {
+            animation: english-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes english-pulse {
+            0%, 100% {
+                box-shadow: 0 4px 20px var(--duo-green-glow), 0 0 0 0 var(--duo-green-glow);
+            }
+            50% {
+                box-shadow: 0 4px 20px var(--duo-green-glow), 0 0 0 8px rgba(88, 204, 2, 0);
+            }
+        }
+
+        /* Tooltip */
+        .english-tooltip {
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-right: 12px;
+            padding: 8px 14px;
+            background: rgba(24, 24, 27, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(88, 204, 2, 0.3);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #89e219;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 101;
+        }
+
+        .english-tooltip::after {
+            content: '';
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-left-color: rgba(88, 204, 2, 0.3);
+        }
+
+        .english-panel.collapsed:hover .english-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Expanded Content */
+        .english-expanded {
+            background: rgba(24, 24, 27, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(88, 204, 2, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(88, 204, 2, 0.1);
+            position: relative;
+        }
+
+        .english-header {
+            padding: 20px 60px 16px 20px;
+            background: linear-gradient(135deg, rgba(88, 204, 2, 0.12) 0%, rgba(137, 226, 25, 0.06) 100%);
+            border-bottom: 1px solid rgba(88, 204, 2, 0.15);
+            cursor: grab;
+            user-select: none;
+        }
+
+        .english-header:active {
+            cursor: grabbing;
+        }
+
+        .english-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .english-title-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #58cc02 0%, #89e219 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(88, 204, 2, 0.3);
+            font-size: 20px;
+        }
+
+        .english-text h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #89e219;
+            margin: 0;
+        }
+
+        .english-text p {
+            font-size: 12px;
+            color: #a1a1aa;
+            margin: 2px 0 0 0;
+        }
+
+        /* Stats Display */
+        .english-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+        }
+
+        .stat-item.streak {
+            color: #ff9500;
+        }
+
+        .stat-item.xp {
+            color: var(--duo-gold);
+        }
+
+        /* Settings Bar */
+        .english-settings {
+            padding: 12px 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .english-settings select {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fafafa;
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .english-settings select:focus {
+            border-color: var(--duo-green);
+        }
+
+        .exercise-type-tabs {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .exercise-type-tabs button {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #a1a1aa;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .exercise-type-tabs button:hover {
+            background: rgba(88, 204, 2, 0.1);
+            border-color: rgba(88, 204, 2, 0.3);
+            color: #89e219;
+        }
+
+        .exercise-type-tabs button.active {
+            background: rgba(88, 204, 2, 0.15);
+            border-color: var(--duo-green);
+            color: #89e219;
+        }
+
+        /* Content Area */
+        .english-content {
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* Loading State */
+        .english-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            gap: 16px;
+        }
+
+        .english-loading p {
+            font-size: 13px;
+            color: #71717a;
+        }
+
+        /* Start Screen */
+        .english-start {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .english-start .start-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .english-start h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fafafa;
+            margin: 0 0 8px 0;
+        }
+
+        .english-start p {
+            font-size: 13px;
+            color: #a1a1aa;
+            margin: 0 0 20px 0;
+        }
+
+        .start-btn {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #58cc02 0%, #4caf00 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px var(--duo-green-glow);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px var(--duo-green-glow);
+        }
+
+        /* Exercise Display */
+        .english-exercise {
+            padding: 10px 0;
+        }
+
+        .exercise-question {
+            font-size: 16px;
+            font-weight: 500;
+            color: #fafafa;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .exercise-context {
+            font-size: 14px;
+            color: #a1a1aa;
+            font-style: italic;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border-left: 3px solid var(--duo-green);
+        }
+
+        /* Options */
+        .exercise-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .option-btn {
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fafafa;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(88, 204, 2, 0.1);
+            border-color: rgba(88, 204, 2, 0.3);
+        }
+
+        .option-btn.selected {
+            background: rgba(88, 204, 2, 0.15);
+            border-color: var(--duo-green);
+        }
+
+        .option-btn.correct {
+            background: rgba(88, 204, 2, 0.2);
+            border-color: var(--duo-green);
+            color: var(--duo-green-light);
+        }
+
+        .option-btn.incorrect {
+            background: rgba(255, 75, 75, 0.15);
+            border-color: var(--duo-red);
+            color: #ff6b6b;
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .option-letter {
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.selected .option-letter {
+            background: var(--duo-green);
+            color: white;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--duo-green);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--duo-red);
+            color: white;
+        }
+
+        /* Text Input for Translation */
+        .exercise-input-container {
+            margin-bottom: 16px;
+        }
+
+        .exercise-input-container input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fafafa;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .exercise-input-container input:focus {
+            border-color: var(--duo-green);
+            background: rgba(88, 204, 2, 0.05);
+        }
+
+        .exercise-input-container input::placeholder {
+            color: #71717a;
+        }
+
+        /* Feedback */
+        .exercise-feedback {
+            margin-top: 16px;
+        }
+
+        .feedback-correct {
+            background: rgba(88, 204, 2, 0.12);
+            border: 1px solid rgba(88, 204, 2, 0.25);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .feedback-incorrect {
+            background: rgba(255, 75, 75, 0.12);
+            border: 1px solid rgba(255, 75, 75, 0.25);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .feedback-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feedback-correct .feedback-header {
+            color: var(--duo-green-light);
+        }
+
+        .feedback-incorrect .feedback-header {
+            color: #ff6b6b;
+        }
+
+        .feedback-explanation {
+            font-size: 13px;
+            color: #d4d4d8;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .feedback-correct-answer {
+            font-size: 13px;
+            color: #4ade80;
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            background: rgba(74, 222, 128, 0.1);
+            border-radius: 6px;
+        }
+
+        .feedback-xp {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--duo-gold);
+        }
+
+        /* Action Buttons */
+        .exercise-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .hint-btn {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #a1a1aa;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .hint-btn:hover:not(:disabled) {
+            background: rgba(255, 200, 0, 0.1);
+            border-color: rgba(255, 200, 0, 0.3);
+            color: var(--duo-gold);
+        }
+
+        .hint-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .check-btn {
+            flex: 1;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #58cc02 0%, #4caf00 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .check-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px var(--duo-green-glow);
+        }
+
+        .check-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .next-btn {
+            position: absolute;
+            top: 60px;
+            right: 16px;
+            z-index: 10;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .next-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Progress Bar */
+        .english-progress {
+            padding: 14px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--duo-green) 0%, var(--duo-green-light) 100%);
+            border-radius: 5px;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #a1a1aa;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* Hint Display */
+        .hint-display {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(255, 200, 0, 0.1);
+            border: 1px solid rgba(255, 200, 0, 0.2);
+            border-radius: 10px;
+            font-size: 13px;
+            color: var(--duo-gold);
+            line-height: 1.5;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            .english-panel {
+                right: 16px;
+                bottom: 220px;
+            }
+
+            .english-panel.expanded {
+                width: calc(100vw - 32px);
+            }
+
+            .english-content {
+                max-height: 300px;
+            }
+
+            .exercise-type-tabs button {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body class="dark">
@@ -1686,6 +2465,128 @@
         </div>
     </div>
 
+    <!-- English Learning Floating Panel -->
+    <div class="english-panel collapsed" id="english-panel">
+        <!-- Drag Handle -->
+        <div class="english-drag-handle" id="english-drag-handle">
+            <div class="drag-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <!-- Icon Button -->
+        <button class="english-icon-btn" id="english-icon-btn" title="English Learning">
+            <svg class="icon-learn" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            <svg class="icon-close" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+
+        <!-- Tooltip -->
+        <div class="english-tooltip">English Learning (Drag to move)</div>
+
+        <!-- Expanded Content -->
+        <div class="english-expanded">
+            <button class="next-btn" id="next-btn" onclick="nextExercise()" style="display: none;">
+                Next
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
+            </button>
+            <div class="english-header">
+                <div class="english-title">
+                    <div class="english-title-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                    </div>
+                    <div class="english-text">
+                        <h3>English Learning</h3>
+                        <p>Practice vocabulary & grammar</p>
+                    </div>
+                </div>
+                <div class="english-stats">
+                    <span class="streak-badge" id="english-streak">🔥 0</span>
+                    <span class="xp-badge" id="english-xp">⭐ 0 XP</span>
+                </div>
+            </div>
+
+            <!-- Settings Bar -->
+            <div class="english-settings">
+                <select id="difficulty-select" onchange="updateDifficulty(this.value)">
+                    <option value="beginner">🌱 Beginner</option>
+                    <option value="intermediate">🌿 Intermediate</option>
+                    <option value="advanced">🌳 Advanced</option>
+                </select>
+                <div class="exercise-type-tabs">
+                    <button class="type-tab active" data-type="vocabulary" onclick="selectExerciseType('vocabulary')">Vocab</button>
+                    <button class="type-tab" data-type="grammar" onclick="selectExerciseType('grammar')">Grammar</button>
+                    <button class="type-tab" data-type="translation" onclick="selectExerciseType('translation')">Translate</button>
+                </div>
+            </div>
+
+            <!-- Exercise Content -->
+            <div class="english-content" id="english-content">
+                <!-- Welcome Screen -->
+                <div class="english-welcome" id="english-welcome">
+                    <div class="welcome-icon">📚</div>
+                    <h4>Ready to learn?</h4>
+                    <p>Choose your difficulty and exercise type, then start practicing!</p>
+                    <button class="start-btn" onclick="startLearningSession()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Start Learning
+                    </button>
+                </div>
+
+                <!-- Loading State -->
+                <div class="english-loading" id="english-loading" style="display: none;">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                    <p>Generating exercise...</p>
+                </div>
+
+                <!-- Exercise Display -->
+                <div class="english-exercise" id="english-exercise" style="display: none;">
+                    <div class="exercise-type-badge" id="exercise-type-badge">Vocabulary</div>
+                    <div class="exercise-question" id="exercise-question"></div>
+                    <div class="exercise-context" id="exercise-context"></div>
+                    <div class="exercise-options" id="exercise-options"></div>
+                    <div class="exercise-feedback" id="exercise-feedback" style="display: none;"></div>
+                    <div class="exercise-actions">
+                        <button class="hint-btn" id="hint-btn" onclick="getHint()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                            Hint
+                        </button>
+                        <button class="check-btn" id="check-btn" onclick="checkAnswer()">Check Answer</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="english-progress">
+                <div class="progress-info">
+                    <span id="progress-count">0 / 10</span>
+                    <span id="session-score">Score: 0</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Snow Toggle Button -->
     <button class="snow-toggle" id="snow-toggle" onclick="toggleSnowMode()">
         <span class="snow-tooltip" id="snow-tooltip">Enable Snow Mode ❄️</span>
@@ -1703,6 +2604,7 @@
         const HEALTH_ENDPOINT = '/health';
         const SUGGESTIONS_ENDPOINT = '/api/suggestions';
         const INVESTOR_ENDPOINT = '/api/investor-insights';
+        const ENGLISH_LEARNING_ENDPOINT = '/api/english-learning';
         const MAX_HISTORY = 5; // จำบทสนทนา 5 ครั้งล่าสุด
         const USE_STREAMING = true; // เปิดใช้งาน streaming mode
 
@@ -1720,10 +2622,39 @@
         let panelStartY = 0;
         let hasDragged = false;
 
+        // Global mouse position tracking
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        document.addEventListener('mousemove', (e) => {
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+
         // Snow mode state
         let snowModeActive = false;
         let snowflakes = [];
         let snowInterval = null;
+
+        // English Learning state
+        let englishPanelExpanded = false;
+        let currentExercise = null;
+        let selectedAnswer = null;
+        let englishLearningState = {
+            totalXP: 0,
+            currentStreak: 0,
+            difficulty: 'beginner',
+            exerciseType: 'vocabulary',
+            sessionExercises: 0,
+            sessionCorrect: 0,
+            sessionGoal: 10
+        };
+        // Drag state for English panel
+        let englishIsDragging = false;
+        let englishDragStartX = 0;
+        let englishDragStartY = 0;
+        let englishPanelStartX = 0;
+        let englishPanelStartY = 0;
+        let englishHasDragged = false;
 
         const defaultSuggestions = [
             {"question": "What are the latest breakthroughs in AI?", "description": "Recent AI developments", "category": "Technology"},
@@ -1749,15 +2680,93 @@
                 panel.classList.add('expanded');
                 investorPanelExpanded = true;
 
+                // Adjust position to prevent overflow after expanding
+                setTimeout(() => {
+                    adjustInvestorPanelPosition();
+                }, 50);
+
                 // Load insights if not loaded yet
                 if (!investorInsightsLoaded) {
                     loadInvestorInsights();
                 }
             } else {
-                // Collapse
+                // Collapse - position icon at mouse cursor
+                const iconSize = 56;
+                let newLeft = lastMouseX - (iconSize / 2);
+                let newTop = lastMouseY - (iconSize / 2);
+
+                // Keep within viewport bounds
+                newLeft = Math.max(10, Math.min(newLeft, window.innerWidth - iconSize - 10));
+                newTop = Math.max(10, Math.min(newTop, window.innerHeight - iconSize - 10));
+
+                panel.style.left = newLeft + 'px';
+                panel.style.top = newTop + 'px';
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+
                 panel.classList.remove('expanded');
                 panel.classList.add('collapsed');
                 investorPanelExpanded = false;
+
+                // Save new position
+                localStorage.setItem('investorPanelPos', JSON.stringify({
+                    left: newLeft,
+                    top: newTop
+                }));
+            }
+        }
+
+        function adjustInvestorPanelPosition() {
+            const panel = document.getElementById('investor-panel');
+            if (!panel || !panel.classList.contains('expanded')) return;
+
+            const rect = panel.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            let needsUpdate = false;
+            let newLeft = rect.left;
+            let newTop = rect.top;
+
+            // Check right edge overflow
+            if (rect.right > viewportWidth) {
+                newLeft = viewportWidth - rect.width - 10;
+                needsUpdate = true;
+            }
+
+            // Check left edge overflow
+            if (rect.left < 0) {
+                newLeft = 10;
+                needsUpdate = true;
+            }
+
+            // Check bottom edge overflow
+            if (rect.bottom > viewportHeight) {
+                newTop = viewportHeight - rect.height - 10;
+                needsUpdate = true;
+            }
+
+            // Check top edge overflow
+            if (rect.top < 0) {
+                newTop = 10;
+                needsUpdate = true;
+            }
+
+            if (needsUpdate) {
+                // Ensure values are within bounds
+                newLeft = Math.max(10, Math.min(newLeft, viewportWidth - rect.width - 10));
+                newTop = Math.max(10, Math.min(newTop, viewportHeight - rect.height - 10));
+
+                panel.style.left = newLeft + 'px';
+                panel.style.top = newTop + 'px';
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+
+                // Save adjusted position
+                localStorage.setItem('investorPanelPos', JSON.stringify({
+                    left: newLeft,
+                    top: newTop
+                }));
             }
         }
 
@@ -1889,6 +2898,13 @@
                     console.error('Failed to restore panel position:', e);
                 }
             }
+
+            // Adjust position on window resize
+            window.addEventListener('resize', () => {
+                if (investorPanelExpanded) {
+                    adjustInvestorPanelPosition();
+                }
+            });
         }
 
         // ===== SNOW MODE FUNCTIONS =====
@@ -2010,6 +3026,616 @@
         }
 
         // ===== END SNOW MODE FUNCTIONS =====
+
+        // ===== ENGLISH LEARNING FUNCTIONS =====
+
+        function initEnglishPanel() {
+            // Load saved progress
+            const savedProgress = localStorage.getItem('englishLearningProgress');
+            if (savedProgress) {
+                const progress = JSON.parse(savedProgress);
+                englishLearningState.totalXP = progress.totalXP || 0;
+                englishLearningState.currentStreak = progress.currentStreak || 0;
+                englishLearningState.difficulty = progress.difficulty || 'beginner';
+                englishLearningState.exerciseType = progress.exerciseType || 'vocabulary';
+
+                updateEnglishStats();
+
+                // Restore difficulty and type selection
+                const difficultySelect = document.getElementById('difficulty-select');
+                if (difficultySelect) {
+                    difficultySelect.value = englishLearningState.difficulty;
+                }
+
+                // Restore active tab
+                document.querySelectorAll('.type-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.type === englishLearningState.exerciseType) {
+                        tab.classList.add('active');
+                    }
+                });
+            }
+
+            // Load saved position
+            const savedPos = localStorage.getItem('englishPanelPos');
+            if (savedPos) {
+                const pos = JSON.parse(savedPos);
+                const panel = document.getElementById('english-panel');
+                if (panel) {
+                    panel.style.bottom = pos.bottom;
+                    panel.style.right = pos.right;
+                    panel.style.left = 'auto';
+                    panel.style.top = 'auto';
+                }
+            }
+
+            // Initialize drag
+            initEnglishPanelDrag();
+
+            // Adjust position on window resize
+            window.addEventListener('resize', () => {
+                if (englishPanelExpanded) {
+                    adjustEnglishPanelPosition();
+                }
+            });
+        }
+
+        function toggleEnglishPanel() {
+            if (englishHasDragged) {
+                englishHasDragged = false;
+                return;
+            }
+
+            const panel = document.getElementById('english-panel');
+
+            if (panel.classList.contains('collapsed')) {
+                panel.classList.remove('collapsed');
+                panel.classList.add('expanded');
+                englishPanelExpanded = true;
+
+                // Adjust position to prevent overflow after expanding
+                setTimeout(() => {
+                    adjustEnglishPanelPosition();
+                }, 50);
+            } else {
+                // Collapse - position icon at mouse cursor
+                const iconSize = 56;
+                let newLeft = lastMouseX - (iconSize / 2);
+                let newTop = lastMouseY - (iconSize / 2);
+
+                // Keep within viewport bounds
+                newLeft = Math.max(10, Math.min(newLeft, window.innerWidth - iconSize - 10));
+                newTop = Math.max(10, Math.min(newTop, window.innerHeight - iconSize - 10));
+
+                // Convert to right/bottom for English panel
+                const newRight = window.innerWidth - newLeft - iconSize;
+                const newBottom = window.innerHeight - newTop - iconSize;
+
+                panel.style.right = newRight + 'px';
+                panel.style.bottom = newBottom + 'px';
+                panel.style.left = 'auto';
+                panel.style.top = 'auto';
+
+                panel.classList.remove('expanded');
+                panel.classList.add('collapsed');
+                englishPanelExpanded = false;
+
+                // Save new position
+                localStorage.setItem('englishPanelPos', JSON.stringify({
+                    right: newRight + 'px',
+                    bottom: newBottom + 'px'
+                }));
+            }
+        }
+
+        function adjustEnglishPanelPosition() {
+            const panel = document.getElementById('english-panel');
+            if (!panel || !panel.classList.contains('expanded')) return;
+
+            const rect = panel.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            let needsUpdate = false;
+            let newRight = parseFloat(panel.style.right) || 24;
+            let newBottom = parseFloat(panel.style.bottom) || 240;
+
+            // Check right edge overflow
+            if (rect.left < 0) {
+                newRight = viewportWidth - rect.width - 10;
+                needsUpdate = true;
+            }
+
+            // Check left edge overflow (panel too far right)
+            if (rect.right > viewportWidth) {
+                newRight = 10;
+                needsUpdate = true;
+            }
+
+            // Check bottom edge overflow
+            if (rect.bottom > viewportHeight) {
+                newBottom = 10;
+                needsUpdate = true;
+            }
+
+            // Check top edge overflow
+            if (rect.top < 0) {
+                newBottom = viewportHeight - rect.height - 10;
+                needsUpdate = true;
+            }
+
+            if (needsUpdate) {
+                // Ensure values are within bounds
+                newRight = Math.max(10, Math.min(newRight, viewportWidth - rect.width - 10));
+                newBottom = Math.max(10, Math.min(newBottom, viewportHeight - rect.height - 10));
+
+                panel.style.right = newRight + 'px';
+                panel.style.bottom = newBottom + 'px';
+                panel.style.left = 'auto';
+                panel.style.top = 'auto';
+
+                // Save adjusted position
+                localStorage.setItem('englishPanelPos', JSON.stringify({
+                    bottom: panel.style.bottom,
+                    right: panel.style.right
+                }));
+            }
+        }
+
+        function initEnglishPanelDrag() {
+            const panel = document.getElementById('english-panel');
+            const dragHandle = document.getElementById('english-drag-handle');
+            const iconBtn = document.getElementById('english-icon-btn');
+
+            if (!panel || !dragHandle) return;
+
+            // Mouse events
+            dragHandle.addEventListener('mousedown', startEnglishDrag);
+            document.addEventListener('mousemove', englishDrag);
+            document.addEventListener('mouseup', endEnglishDrag);
+
+            // Touch events
+            dragHandle.addEventListener('touchstart', startEnglishDrag, { passive: false });
+            document.addEventListener('touchmove', englishDrag, { passive: false });
+            document.addEventListener('touchend', endEnglishDrag);
+
+            // Icon button click (only if not dragging) - for expanded state
+            iconBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!englishHasDragged) {
+                    toggleEnglishPanel();
+                }
+                englishHasDragged = false;
+            });
+
+            // Drag handle click (only if not dragging) - for collapsed state
+            dragHandle.addEventListener('click', (e) => {
+                if (!englishHasDragged && panel.classList.contains('collapsed')) {
+                    toggleEnglishPanel();
+                }
+                englishHasDragged = false;
+            });
+
+            // Double-click to reset position
+            dragHandle.addEventListener('dblclick', resetEnglishPanelPosition);
+        }
+
+        function startEnglishDrag(e) {
+            const panel = document.getElementById('english-panel');
+
+            englishIsDragging = true;
+            englishHasDragged = false;
+            // Don't add dragging class immediately - wait until actual movement
+
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            englishDragStartX = clientX;
+            englishDragStartY = clientY;
+
+            const rect = panel.getBoundingClientRect();
+            englishPanelStartX = window.innerWidth - rect.right;
+            englishPanelStartY = window.innerHeight - rect.bottom;
+
+            if (e.type.includes('touch')) {
+                e.preventDefault();
+            }
+        }
+
+        function englishDrag(e) {
+            if (!englishIsDragging) return;
+
+            const panel = document.getElementById('english-panel');
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            const deltaX = englishDragStartX - clientX;
+            const deltaY = englishDragStartY - clientY;
+
+            if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+                englishHasDragged = true;
+                panel.classList.add('dragging');
+            }
+
+            const rect = panel.getBoundingClientRect();
+
+            let newRight = englishPanelStartX + deltaX;
+            let newBottom = englishPanelStartY + deltaY;
+
+            // Boundary constraints
+            newRight = Math.max(0, Math.min(newRight, window.innerWidth - rect.width));
+            newBottom = Math.max(0, Math.min(newBottom, window.innerHeight - rect.height));
+
+            panel.style.right = newRight + 'px';
+            panel.style.bottom = newBottom + 'px';
+            panel.style.left = 'auto';
+            panel.style.top = 'auto';
+
+            if (e.type.includes('touch')) {
+                e.preventDefault();
+            }
+        }
+
+        function endEnglishDrag(e) {
+            if (!englishIsDragging) return;
+
+            const panel = document.getElementById('english-panel');
+            englishIsDragging = false;
+            panel.classList.remove('dragging');
+
+            // Save position
+            localStorage.setItem('englishPanelPos', JSON.stringify({
+                bottom: panel.style.bottom,
+                right: panel.style.right
+            }));
+        }
+
+        function resetEnglishPanelPosition() {
+            const panel = document.getElementById('english-panel');
+            panel.style.bottom = '180px';
+            panel.style.right = '24px';
+            panel.style.left = 'auto';
+            panel.style.top = 'auto';
+            localStorage.removeItem('englishPanelPos');
+        }
+
+        function updateDifficulty(difficulty) {
+            englishLearningState.difficulty = difficulty;
+            saveEnglishProgress();
+
+            // If exercise is currently displayed, generate new one with new difficulty
+            const exerciseEl = document.getElementById('english-exercise');
+            if (exerciseEl && exerciseEl.style.display !== 'none') {
+                generateExercise();
+            }
+        }
+
+        function selectExerciseType(type) {
+            englishLearningState.exerciseType = type;
+
+            document.querySelectorAll('.type-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.type === type) {
+                    tab.classList.add('active');
+                }
+            });
+
+            saveEnglishProgress();
+
+            // If exercise is currently displayed, generate new one with new type
+            const exerciseEl = document.getElementById('english-exercise');
+            if (exerciseEl && exerciseEl.style.display !== 'none') {
+                generateExercise();
+            }
+        }
+
+        function updateEnglishStats() {
+            document.getElementById('english-streak').textContent = '🔥 ' + englishLearningState.currentStreak;
+            document.getElementById('english-xp').textContent = '⭐ ' + englishLearningState.totalXP + ' XP';
+        }
+
+        function saveEnglishProgress() {
+            localStorage.setItem('englishLearningProgress', JSON.stringify({
+                totalXP: englishLearningState.totalXP,
+                currentStreak: englishLearningState.currentStreak,
+                difficulty: englishLearningState.difficulty,
+                exerciseType: englishLearningState.exerciseType,
+                lastPractice: new Date().toISOString()
+            }));
+        }
+
+        function startLearningSession() {
+            englishLearningState.sessionExercises = 0;
+            englishLearningState.sessionCorrect = 0;
+            updateProgressBar();
+
+            // Restore exercise HTML structure (in case it was replaced by session complete)
+            const exerciseEl = document.getElementById('english-exercise');
+            exerciseEl.innerHTML = `
+                <div class="exercise-type-badge" id="exercise-type-badge">Vocabulary</div>
+                <div class="exercise-question" id="exercise-question"></div>
+                <div class="exercise-context" id="exercise-context"></div>
+                <div class="exercise-options" id="exercise-options"></div>
+                <div class="exercise-feedback" id="exercise-feedback" style="display: none;"></div>
+                <div class="exercise-actions">
+                    <button class="hint-btn" id="hint-btn" onclick="getHint()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        Hint
+                    </button>
+                    <button class="check-btn" id="check-btn" onclick="checkAnswer()">Check Answer</button>
+                </div>
+            `;
+
+            generateExercise();
+        }
+
+        // Random topics for vocabulary variety
+        const vocabularyTopics = [
+            'daily life', 'food and cooking', 'travel', 'technology', 'nature',
+            'emotions and feelings', 'business', 'health', 'entertainment', 'sports',
+            'education', 'weather', 'family', 'shopping', 'transportation',
+            'animals', 'colors and shapes', 'time and dates', 'jobs and careers', 'hobbies',
+            'music', 'art', 'science', 'history', 'culture'
+        ];
+
+        async function generateExercise() {
+            document.getElementById('english-welcome').style.display = 'none';
+            document.getElementById('english-loading').style.display = 'flex';
+            document.getElementById('english-exercise').style.display = 'none';
+
+            // Select random topic for variety
+            const randomTopic = vocabularyTopics[Math.floor(Math.random() * vocabularyTopics.length)];
+
+            try {
+                const response = await fetch(ENGLISH_LEARNING_ENDPOINT + '/exercise', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        exercise_type: englishLearningState.exerciseType,
+                        difficulty: englishLearningState.difficulty,
+                        topic: randomTopic,
+                        timestamp: Date.now()  // Force unique request
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    currentExercise = data.exercise;
+                    displayExercise(currentExercise);
+                } else {
+                    showExerciseError(data.message || 'Failed to generate exercise');
+                }
+            } catch (error) {
+                console.error('Error generating exercise:', error);
+                showExerciseError('Network error. Please try again.');
+            }
+        }
+
+        function displayExercise(exercise) {
+            document.getElementById('english-loading').style.display = 'none';
+            document.getElementById('english-exercise').style.display = 'block';
+
+            // Set type badge
+            const typeBadge = document.getElementById('exercise-type-badge');
+            const typeLabels = {
+                'vocabulary': '📚 Vocabulary',
+                'grammar': '✏️ Grammar',
+                'translation': '🌐 Translation'
+            };
+            typeBadge.textContent = typeLabels[exercise.type] || exercise.type;
+
+            // Set question
+            document.getElementById('exercise-question').textContent = exercise.question;
+
+            // Set context if available
+            const contextEl = document.getElementById('exercise-context');
+            if (exercise.context) {
+                contextEl.textContent = exercise.context;
+                contextEl.style.display = 'block';
+            } else {
+                contextEl.style.display = 'none';
+            }
+
+            // Set options
+            const optionsContainer = document.getElementById('exercise-options');
+            optionsContainer.innerHTML = '';
+            selectedAnswer = null;
+
+            exercise.options.forEach((option, index) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-btn';
+                optionBtn.textContent = option;
+                optionBtn.onclick = () => selectOption(optionBtn, option);
+                optionsContainer.appendChild(optionBtn);
+            });
+
+            // Reset buttons
+            document.getElementById('check-btn').style.display = 'inline-flex';
+            document.getElementById('check-btn').disabled = true;
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('hint-btn').style.display = 'inline-flex';
+            document.getElementById('exercise-feedback').style.display = 'none';
+        }
+
+        function selectOption(element, option) {
+            // Remove previous selection
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            // Mark selected
+            element.classList.add('selected');
+            selectedAnswer = option;
+
+            // Enable check button
+            document.getElementById('check-btn').disabled = false;
+        }
+
+        async function checkAnswer() {
+            if (!selectedAnswer || !currentExercise) return;
+
+            // Disable further selection
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.style.pointerEvents = 'none';
+            });
+            document.getElementById('check-btn').style.display = 'none';
+            document.getElementById('hint-btn').style.display = 'none';
+
+            try {
+                const response = await fetch(ENGLISH_LEARNING_ENDPOINT + '/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        exercise_id: currentExercise.id,
+                        user_answer: selectedAnswer
+                    })
+                });
+
+                const data = await response.json();
+                displayFeedback(data);
+            } catch (error) {
+                console.error('Error checking answer:', error);
+                displayFeedback({ correct: false, message: 'Error checking answer' });
+            }
+        }
+
+        function displayFeedback(result) {
+            const feedbackEl = document.getElementById('exercise-feedback');
+
+            // Mark correct/incorrect options
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                if (btn.textContent === result.correct_answer) {
+                    btn.classList.add('correct');
+                } else if (btn.classList.contains('selected') && !result.correct) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            // Show feedback
+            feedbackEl.className = 'exercise-feedback ' + (result.correct ? 'correct' : 'incorrect');
+            feedbackEl.innerHTML = `
+                <div class="feedback-header">
+                    ${result.correct ? '✅ Correct!' : '❌ Incorrect'}
+                </div>
+                ${!result.correct && result.correct_answer ? '<div class="feedback-correct-answer">✔ Correct answer: <strong>' + result.correct_answer + '</strong></div>' : ''}
+                <div class="feedback-explanation">${result.explanation || ''}</div>
+                ${result.thai_explanation ? '<div class="feedback-thai">' + result.thai_explanation + '</div>' : ''}
+            `;
+            feedbackEl.style.display = 'block';
+
+            // Update progress
+            englishLearningState.sessionExercises++;
+            if (result.correct) {
+                englishLearningState.sessionCorrect++;
+                englishLearningState.totalXP += 10;
+                englishLearningState.currentStreak++;
+            } else {
+                englishLearningState.currentStreak = 0;
+            }
+
+            updateEnglishStats();
+            updateProgressBar();
+            saveEnglishProgress();
+
+            // Show next button
+            document.getElementById('next-btn').style.display = 'inline-flex';
+        }
+
+        function updateProgressBar() {
+            const progress = (englishLearningState.sessionExercises / englishLearningState.sessionGoal) * 100;
+            document.getElementById('progress-fill').style.width = Math.min(progress, 100) + '%';
+            document.getElementById('progress-count').textContent =
+                englishLearningState.sessionExercises + ' / ' + englishLearningState.sessionGoal;
+            document.getElementById('session-score').textContent =
+                'Score: ' + englishLearningState.sessionCorrect;
+        }
+
+        function nextExercise() {
+            if (englishLearningState.sessionExercises >= englishLearningState.sessionGoal) {
+                showSessionComplete();
+            } else {
+                generateExercise();
+            }
+        }
+
+        function showSessionComplete() {
+            const exerciseEl = document.getElementById('english-exercise');
+            const accuracy = Math.round((englishLearningState.sessionCorrect / englishLearningState.sessionGoal) * 100);
+
+            exerciseEl.innerHTML = `
+                <div class="session-complete">
+                    <div class="complete-icon">🎉</div>
+                    <h3>Session Complete!</h3>
+                    <div class="complete-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">${englishLearningState.sessionCorrect}/${englishLearningState.sessionGoal}</span>
+                            <span class="stat-label">Correct</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${accuracy}%</span>
+                            <span class="stat-label">Accuracy</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">+${englishLearningState.sessionCorrect * 10}</span>
+                            <span class="stat-label">XP Earned</span>
+                        </div>
+                    </div>
+                    <button class="start-btn" onclick="startLearningSession()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Practice Again
+                    </button>
+                </div>
+            `;
+        }
+
+        async function getHint() {
+            if (!currentExercise) return;
+
+            const hintBtn = document.getElementById('hint-btn');
+            hintBtn.disabled = true;
+            hintBtn.innerHTML = '<span class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></span>';
+
+            try {
+                const response = await fetch(ENGLISH_LEARNING_ENDPOINT + '/hint', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        exercise_id: currentExercise.id
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    const contextEl = document.getElementById('exercise-context');
+                    contextEl.innerHTML = '<strong>💡 Hint:</strong> ' + data.hint;
+                    contextEl.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error getting hint:', error);
+            }
+
+            hintBtn.style.display = 'none';
+        }
+
+        function showExerciseError(message) {
+            document.getElementById('english-loading').style.display = 'none';
+            document.getElementById('english-exercise').style.display = 'block';
+            document.getElementById('english-exercise').innerHTML = `
+                <div class="exercise-error">
+                    <div class="error-icon">⚠️</div>
+                    <p>${message}</p>
+                    <button class="start-btn" onclick="generateExercise()">Try Again</button>
+                </div>
+            `;
+        }
+
+        // ===== END ENGLISH LEARNING FUNCTIONS =====
 
         function formatInvestorDate(dateStr) {
             const date = new Date(dateStr);
@@ -2792,6 +4418,7 @@
             loadSuggestions();
             initInvestorPanelDrag();
             initSnowMode();
+            initEnglishPanel();
             document.getElementById('message-input').focus();
         });
 

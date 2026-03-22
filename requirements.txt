@@ -10,3 +10,6 @@ python-dotenv==1.0.0
 
 # Google Generative AI SDK
 google-genai
+
+# Background scheduler (daily email)
+APScheduler==3.10.4

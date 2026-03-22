@@ -7,6 +7,10 @@ import time
 import logging
 import inspect
 import json
+import uuid
+import random
+import re
+from datetime import datetime
 
 # Setup logging
 logging.basicConfig(
@@ -18,19 +22,29 @@ logger = logging.getLogger(__name__)
 # Load environment variables
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    load_dotenv(_env_path)
     logger.info("Environment variables loaded from .env")
 except ImportError:
     logger.warning("python-dotenv not installed. Using system environment variables only.")
 
 # Import prompts
 try:
-    from prompts import GEMINI_SYSTEM_PROMPT, TYPHOON_SYSTEM_PROMPT
+    from prompts import (
+        GEMINI_SYSTEM_PROMPT,
+        TYPHOON_SYSTEM_PROMPT,
+        VOCABULARY_EXERCISE_PROMPT,
+        GRAMMAR_EXERCISE_PROMPT,
+        TRANSLATION_EXERCISE_PROMPT
+    )
     logger.info("System prompts loaded")
 except ImportError:
     logger.warning("prompts.py not found. Using default prompts.")
     GEMINI_SYSTEM_PROMPT = "You are a helpful AI assistant with access to Google Search. Provide accurate, well-researched answers."
     TYPHOON_SYSTEM_PROMPT = "You are a helpful AI assistant. Process and present information clearly. Support both English and Thai."
+    VOCABULARY_EXERCISE_PROMPT = ""
+    GRAMMAR_EXERCISE_PROMPT = ""
+    TRANSLATION_EXERCISE_PROMPT = ""
 
 # Import Google GenAI SDK
 try:
@@ -1020,6 +1034,355 @@ def get_investor_insights():
         })
 
 
+# ===== ENGLISH LEARNING =====
+
+# Cache for English learning exercises
+english_exercise_cache = {}
+
+
+def generate_english_exercise(exercise_type, difficulty, topic=None):
+    """Generate an English learning exercise using Gemini or Typhoon API"""
+
+    # Add uniqueness instruction
+    unique_instruction = f"\n\nIMPORTANT: Generate a UNIQUE and CREATIVE question. Use randomness. Current timestamp: {datetime.now().isoformat()}"
+
+    # Select appropriate prompt based on exercise type
+    if exercise_type == 'vocabulary':
+        prompt = VOCABULARY_EXERCISE_PROMPT.format(
+            difficulty=difficulty.upper(),
+            topic=topic or 'general everyday vocabulary'
+        ) + unique_instruction
+    elif exercise_type == 'grammar':
+        prompt = GRAMMAR_EXERCISE_PROMPT.format(
+            difficulty=difficulty.upper()
+        ) + unique_instruction
+    elif exercise_type == 'translation':
+        direction = random.choice(['thai_to_english', 'english_to_thai'])
+        prompt = TRANSLATION_EXERCISE_PROMPT.format(
+            difficulty=difficulty.upper(),
+            direction=direction
+        ) + unique_instruction
+    else:
+        logger.error(f"Unknown exercise type: {exercise_type}")
+        return None
+
+    text = None
+
+    # Try Gemini first
+    if gemini_client:
+        try:
+            logger.info(f"Generating {exercise_type} exercise with Gemini at {difficulty} level, topic: {topic}")
+
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-flash-lite",
+                contents=prompt
+            )
+
+            text = response.text.strip()
+            logger.info(f"Gemini response received: {len(text)} chars")
+
+        except Exception as e:
+            logger.error(f"Gemini error for English Learning: {str(e)}")
+            text = None
+
+    # Fallback to Typhoon if Gemini fails
+    if not text and TYPHOON_API_KEY:
+        try:
+            logger.info(f"Falling back to Typhoon for {exercise_type} exercise")
+
+            payload = {
+                "model": "typhoon-v2.5-30b-a3b-instruct",
+                "max_tokens": 1024,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are an English language tutor. Generate exercises in valid JSON format only."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                "temperature": 0.8
+            }
+
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {TYPHOON_API_KEY}"
+            }
+
+            response = requests.post(TYPHOON_URL, json=payload, headers=headers, timeout=30)
+
+            if response.status_code == 200:
+                result = response.json()
+                text = result["choices"][0]["message"]["content"].strip()
+                logger.info(f"Typhoon response received: {len(text)} chars")
+            else:
+                logger.error(f"Typhoon API error: {response.status_code}")
+                text = None
+
+        except Exception as e:
+            logger.error(f"Typhoon error for English Learning: {str(e)}")
+            text = None
+
+    if not text:
+        logger.error("Both Gemini and Typhoon failed to generate exercise")
+        return None
+
+    try:
+        # Remove markdown code blocks if present
+        if text.startswith('```'):
+            text = re.sub(r'^```(?:json)?\n?', '', text)
+            text = re.sub(r'\n?```$', '', text)
+
+        exercise_data = json.loads(text)
+
+        # Generate unique ID
+        exercise_id = str(uuid.uuid4())
+
+        # Store exercise with correct answer for validation
+        english_exercise_cache[exercise_id] = {
+            'correct_answer': exercise_data.get('correct_answer'),
+            'explanation': exercise_data.get('explanation', ''),
+            'thai_explanation': exercise_data.get('thai_explanation', ''),
+            'grammar_rule': exercise_data.get('grammar_rule', ''),
+            'created_at': datetime.now()
+        }
+
+        logger.info(f"Exercise generated successfully: {exercise_id}")
+
+        return {
+            'id': exercise_id,
+            'type': exercise_type,
+            'difficulty': difficulty,
+            'question': exercise_data.get('question'),
+            'options': exercise_data.get('options', []),
+            'context': exercise_data.get('context', ''),
+            'hint_available': True
+        }
+
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse exercise JSON: {e}")
+        logger.error(f"Raw response: {text[:500] if text else 'None'}")
+        return None
+    except Exception as e:
+        logger.error(f"Error processing exercise: {str(e)}")
+        return None
+
+
+def check_exercise_answer(exercise_id, user_answer):
+    """Check user's answer against correct answer"""
+    if exercise_id not in english_exercise_cache:
+        logger.warning(f"Exercise not found: {exercise_id}")
+        return None
+
+    cached = english_exercise_cache[exercise_id]
+    correct_answer = cached['correct_answer']
+
+    # Normalize answers for comparison (case-insensitive, strip whitespace)
+    user_normalized = user_answer.strip().lower()
+    correct_normalized = correct_answer.strip().lower()
+
+    is_correct = user_normalized == correct_normalized
+
+    # Calculate XP
+    base_xp = 10 if is_correct else 2  # Participation XP even if wrong
+
+    return {
+        'correct': is_correct,
+        'correct_answer': correct_answer,
+        'explanation': cached.get('explanation', ''),
+        'thai_explanation': cached.get('thai_explanation', ''),
+        'grammar_rule': cached.get('grammar_rule', ''),
+        'xp_earned': base_xp
+    }
+
+
+@app.route('/api/english-learning/exercise', methods=['POST'])
+def get_english_exercise():
+    """Generate a new English learning exercise"""
+    try:
+        data = request.json
+        exercise_type = data.get('exercise_type', 'vocabulary')
+        difficulty = data.get('difficulty', 'beginner')
+        topic = data.get('topic')
+
+        # Validate inputs
+        valid_types = ['vocabulary', 'grammar', 'translation']
+        valid_difficulties = ['beginner', 'intermediate', 'advanced']
+
+        if exercise_type not in valid_types:
+            return jsonify({
+                'status': 'error',
+                'error': f'Invalid exercise type. Must be one of: {valid_types}'
+            }), 400
+
+        if difficulty not in valid_difficulties:
+            return jsonify({
+                'status': 'error',
+                'error': f'Invalid difficulty. Must be one of: {valid_difficulties}'
+            }), 400
+
+        exercise = generate_english_exercise(exercise_type, difficulty, topic)
+
+        if exercise:
+            return jsonify({
+                'status': 'success',
+                'exercise': exercise
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'error': 'Failed to generate exercise. Please try again.'
+            }), 500
+
+    except Exception as e:
+        logger.error(f"Error in /api/english-learning/exercise: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/english-learning/check', methods=['POST'])
+def check_english_answer():
+    """Check user's answer for an exercise"""
+    try:
+        data = request.json
+        exercise_id = data.get('exercise_id')
+        user_answer = data.get('user_answer', '').strip()
+
+        if not exercise_id:
+            return jsonify({
+                'status': 'error',
+                'error': 'Exercise ID is required'
+            }), 400
+
+        if not user_answer:
+            return jsonify({
+                'status': 'error',
+                'error': 'Answer is required'
+            }), 400
+
+        result = check_exercise_answer(exercise_id, user_answer)
+
+        if result:
+            # Generate encouragement message
+            if result['correct']:
+                encouragements = [
+                    "Excellent work! 🎉",
+                    "You're on fire! 🔥",
+                    "Keep it up! 💪",
+                    "Amazing! ⭐",
+                    "Perfect! ✨",
+                    "Great job! 👏"
+                ]
+            else:
+                encouragements = [
+                    "Don't give up! 💪",
+                    "You'll get it next time! 🌟",
+                    "Keep practicing! 📚",
+                    "Learning is a journey! 🚀",
+                    "Almost there! Keep going! 💫"
+                ]
+
+            result['encouragement'] = random.choice(encouragements)
+            result['status'] = 'success'
+
+            return jsonify(result)
+        else:
+            return jsonify({
+                'status': 'error',
+                'error': 'Exercise not found or expired. Please start a new exercise.'
+            }), 404
+
+    except Exception as e:
+        logger.error(f"Error in /api/english-learning/check: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/english-learning/hint', methods=['POST'])
+def get_english_hint():
+    """Get a hint for an exercise"""
+    try:
+        data = request.json
+        exercise_id = data.get('exercise_id')
+
+        if not exercise_id:
+            return jsonify({
+                'status': 'error',
+                'error': 'Exercise ID is required'
+            }), 400
+
+        if exercise_id not in english_exercise_cache:
+            return jsonify({
+                'status': 'error',
+                'error': 'Exercise not found'
+            }), 404
+
+        cached = english_exercise_cache[exercise_id]
+        correct_answer = cached['correct_answer']
+
+        # Generate hint (first letter + length)
+        first_letter = correct_answer[0].upper() if correct_answer else '?'
+        answer_length = len(correct_answer)
+
+        hint = f"💡 The answer starts with '{first_letter}' and has {answer_length} characters."
+
+        # Add grammar rule hint if available
+        if cached.get('grammar_rule'):
+            hint += f"\n📝 Grammar hint: {cached['grammar_rule']}"
+
+        return jsonify({
+            'status': 'success',
+            'hint': hint
+        })
+
+    except Exception as e:
+        logger.error(f"Error in /api/english-learning/hint: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        }), 500
+
+
+# ── Daily investor-insights email ────────────────────────────────────────────
+
+@app.route('/api/send-investor-email', methods=['POST'])
+def trigger_investor_email():
+    """Manually trigger the investor insights email (for testing / on-demand)."""
+    try:
+        from email_service import send_investor_email
+
+        refresh = request.json.get('refresh', False) if request.is_json else False
+
+        if refresh:
+            investor_insights_cache['content'] = None
+            investor_insights_cache['date']    = None
+            investor_insights_cache['twitter_data'] = None
+
+        content, generated_at = generate_investor_insights()
+
+        if not content:
+            return jsonify({'status': 'error', 'error': 'Failed to generate insights'}), 500
+
+        success, message = send_investor_email(content, generated_at)
+
+        if success:
+            return jsonify({'status': 'success', 'message': message})
+        else:
+            return jsonify({'status': 'error', 'error': message}), 500
+
+    except Exception as e:
+        logger.error(f"Error in /api/send-investor-email: {e}")
+        return jsonify({'status': 'error', 'error': str(e)}), 500
+
+
+# ── Entry point ───────────────────────────────────────────────────────────────
+
 if __name__ == '__main__':
     logger.info("\n" + "="*60)
     logger.info("Starting MyAI Assist Server")
@@ -1032,4 +1395,12 @@ if __name__ == '__main__':
     logger.info("API: http://localhost:5000/api/chat")
     logger.info("Health: http://localhost:5000/health")
     logger.info("="*60 + "\n")
+
+    # Start the daily email scheduler
+    try:
+        from scheduler import start_scheduler
+        start_scheduler()
+    except Exception as e:
+        logger.error(f"Could not start scheduler: {e}")
+
     app.run(debug=True, host='0.0.0.0', port=5000)
