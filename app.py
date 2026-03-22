@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, render_template, request, jsonify, Response, stream_with_context
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context, send_from_directory
 from flask_cors import CORS
 import requests
 import os
@@ -488,6 +488,16 @@ Please process, refine, and enhance this answer. Provide a comprehensive, well-s
 def index():
     """Serve the main HTML page"""
     return render_template('index.html')
+
+
+@app.route('/static/js/service-worker.js')
+def service_worker():
+    """Serve service worker with correct headers for PWA scope"""
+    response = send_from_directory('static/js', 'service-worker.js')
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Service-Worker-Allowed'] = '/'
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
 
 
 @app.route('/api/chat/stream', methods=['POST'])

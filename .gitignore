@@ -6,3 +6,5 @@ __pycache__/
 venv/
 nul
 myaiassist/
+node_modules/
+android/

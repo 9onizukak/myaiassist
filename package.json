@@ -6,19 +6,30 @@
   "scripts": {
     "start": "python app.py",
     "dev": "python app.py",
-    "build": "echo 'Python Flask application - no build needed'"
+    "build": "echo 'Python Flask application - no build needed'",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android"
   },
   "keywords": [
     "ai",
     "chatbot",
     "flask",
     "gemini",
-    "typhoon"
+    "typhoon",
+    "pwa",
+    "android"
   ],
   "author": "",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0",
     "python": ">=3.8.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/core": "^6.2.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.1"
   }
 }
